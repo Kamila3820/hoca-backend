@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"sync"
 	"time"
 )
@@ -51,5 +52,6 @@ func ConfigGetting() *Config {
 	once.Do(func() {
 
 	})
+	fmt.Print("hello")
 	return nil
 }
