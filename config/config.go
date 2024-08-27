@@ -1,15 +1,18 @@
 package config
 
 import (
-	"fmt"
+	"strings"
 	"sync"
 	"time"
+
+	"github.com/go-playground/validator/v10"
+	"github.com/spf13/viper"
 )
 
 type (
 	Config struct {
 		Server   *Server   `mapstructure:"server" validate:"required"`
-		State    *State    `mapstructure:"state" validate:"required"`
+		Jwt      *Jwt      `mapstructure:"jwt" validate:"required"`
 		Database *Database `mapstructure:"database" validate:"required"`
 	}
 
@@ -20,16 +23,11 @@ type (
 		TimeOut      time.Duration `mapstructure:"timeout" validate:"required"`
 	}
 
-	OAuth2 struct {
-	}
-
-	endpoint struct {
-	}
-
-	State struct {
-		Secret    string        `mapstructure:"secret" validate:"required"`
-		ExpiresAt time.Duration `mapstructure:"expiresAt" validate:"required"`
-		Issuer    string        `mapstructure:"issuer" validate:"required"`
+	Jwt struct {
+		AccessSecretKey  string        `mapstructure:"accessSecretKey" validate:"required"`
+		RefreshSecretKey string        `mapstructure:"refreshSecretKey" validate:"required"`
+		AccessExpires    time.Duration `mapstructure:"accessExpires" validate:"required"`
+		RefreshExpires   time.Duration `mapstructure:"refreshExpires" validate:"required"`
 	}
 
 	Database struct {
@@ -50,8 +48,27 @@ var (
 
 func ConfigGetting() *Config {
 	once.Do(func() {
+		viper.SetConfigName("config")
+		viper.SetConfigType("yaml")
+		viper.AddConfigPath("./config")
+		viper.AutomaticEnv()
+		viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
+		if err := viper.ReadInConfig(); err != nil {
+			panic(err)
+		}
+
+		if err := viper.Unmarshal(&configInstance); err != nil {
+			panic(err)
+		}
+
+		validating := validator.New()
+
+		if err := validating.Struct(configInstance); err != nil {
+			panic(err)
+		}
 
 	})
-	fmt.Print("hello")
-	return nil
+
+	return configInstance
 }
