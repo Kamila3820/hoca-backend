@@ -13,6 +13,6 @@ func main() {
 	db := databases.NewPostgresDatabase(conf.Database)
 	server := server.NewEchoServer(conf, db.ConnectionGetting())
 
-	fmt.Println("Hello, World!")
+	fmt.Println("Hello, Test!")
 	server.Start()
 }
