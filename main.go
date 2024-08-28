@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Kamila3820/hoca-backend/config"
-	"github.com/Kamila3820/hoca-backend/databases"
+	"github.com/Kamila3820/hoca-backend/pkg/databases"
 	"github.com/Kamila3820/hoca-backend/server"
 )
 
