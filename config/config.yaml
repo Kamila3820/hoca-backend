@@ -7,8 +7,8 @@ server:
  
 oauth2:
   userRedirectUrl: "http://localhost:8080/v1/oauth2/google/user/login/callback"
-  clientId: "xxxxx.apps.googleusercontent.com"
-  clientSecret: "xxxxx"
+  clientId: "760404231944-8t64vutimelm5hpliaulfur6a657pdet.apps.googleusercontent.com"
+  clientSecret: "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"
   endpoints:
     authUrl: "https://accounts.google.com/o/oauth2/auth?access_type=offline&approval_prompt=force"
     tokenUrl: "https://oauth2.googleapis.com/token"
@@ -18,11 +18,6 @@ oauth2:
     - "https://www.googleapis.com/auth/userinfo.profile"
   userInfoUrl: "https://www.googleapis.com/oauth2/v2/userinfo"
   revokeUrl: "https://accounts.google.com/o/oauth2/revoke"
-
-state: 
-  secret: "xxxxx"
-  expireAt: 120 # Second
-  issuer: "hoca"
   
 database:
   host: localhost
