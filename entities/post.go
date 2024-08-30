@@ -7,6 +7,7 @@ type Post struct {
 	UserID       uint64         `gorm:"not null"`
 	Name         string         `gorm:"type:varchar(128);not null"`
 	Description  string         `gorm:"type:text;not null"`
+	Avatar       string         `gorm:"type:varchar(256);not null;default:'';"`
 	CategoryID   uint64         `gorm:"not null"` // Foreign key to PostCategory
 	PlaceTypeID  uint64         `gorm:"not null"` // Foreign key to PostPlaceType
 	LocationLat  string         `gorm:"type:varchar(64);not null"`
