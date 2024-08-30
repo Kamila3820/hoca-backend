@@ -22,37 +22,37 @@ func main() {
 }
 
 func userMigration(db databases.Database) {
-	db.ConnectionGetting().Migrator().CreateTable(&entities.User{})
+	db.Connect().Migrator().CreateTable(&entities.User{})
 }
 
 func oauthMigration(db databases.Database) {
-	db.ConnectionGetting().Migrator().CreateTable(&entities.Oauth{})
+	db.Connect().Migrator().CreateTable(&entities.Oauth{})
 }
 
 func postMigration(db databases.Database) {
-	db.ConnectionGetting().Migrator().CreateTable(&entities.Post{})
+	db.Connect().Migrator().CreateTable(&entities.Post{})
 }
 
 func postCategoryMigration(db databases.Database) {
-	db.ConnectionGetting().Migrator().CreateTable(&entities.PostCategory{})
+	db.Connect().Migrator().CreateTable(&entities.PostCategory{})
 }
 
 func postPlaceTypeMigration(db databases.Database) {
-	db.ConnectionGetting().Migrator().CreateTable(&entities.PostPlaceType{})
+	db.Connect().Migrator().CreateTable(&entities.PostPlaceType{})
 }
 
 func orderMigration(db databases.Database) {
-	db.ConnectionGetting().Migrator().CreateTable(&entities.Order{})
+	db.Connect().Migrator().CreateTable(&entities.Order{})
 }
 
 func historyMigration(db databases.Database) {
-	db.ConnectionGetting().Migrator().CreateTable(&entities.History{})
+	db.Connect().Migrator().CreateTable(&entities.History{})
 }
 
 func userRatingMigration(db databases.Database) {
-	db.ConnectionGetting().Migrator().CreateTable(&entities.UserRating{})
+	db.Connect().Migrator().CreateTable(&entities.UserRating{})
 }
 
 func notificationMigration(db databases.Database) {
-	db.ConnectionGetting().Migrator().CreateTable(&entities.Notification{})
+	db.Connect().Migrator().CreateTable(&entities.Notification{})
 }

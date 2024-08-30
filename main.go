@@ -11,7 +11,7 @@ import (
 func main() {
 	conf := config.ConfigGetting()
 	db := databases.NewPostgresDatabase(conf.Database)
-	server := server.NewEchoServer(conf, db.ConnectionGetting())
+	server := server.NewEchoServer(conf, db)
 
 	fmt.Println("Hello, Test!")
 	server.Start()
