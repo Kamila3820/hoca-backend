@@ -11,6 +11,9 @@ import (
 	"time"
 
 	"github.com/Kamila3820/hoca-backend/config"
+	_oauth2Controller "github.com/Kamila3820/hoca-backend/modules/oauth2/controller"
+	_oauth2Service "github.com/Kamila3820/hoca-backend/modules/oauth2/service"
+	_userRepository "github.com/Kamila3820/hoca-backend/modules/user/repository"
 	"github.com/Kamila3820/hoca-backend/pkg/databases"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -112,4 +115,18 @@ func getCORSMiddleware(allowOrigins []string) echo.MiddlewareFunc {
 
 func getBodyLimitMiddleware(bodyLimit string) echo.MiddlewareFunc {
 	return middleware.BodyLimit(bodyLimit)
+}
+
+func (s *echoServer) getAuthorizingMiddleware() *authorizingMiddleware {
+	userRepository := _userRepository.NewUserRepositoryImpl(s.db, s.app.Logger)
+
+	oauth2Service := _oauth2Service.NewGoogleOAuth2Service(userRepository)
+	oauth2Controller := _oauth2Controller.NewGoogleOAuth2Controller(oauth2Service, s.conf.OAuth2, s.app.Logger)
+
+	return &authorizingMiddleware{
+		oauth2Controller: oauth2Controller,
+		oauth2Conf:       s.conf.OAuth2,
+		logger:           s.app.Logger,
+	}
+
 }
