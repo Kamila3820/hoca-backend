@@ -3,7 +3,7 @@ package repository
 import (
 	"github.com/Kamila3820/hoca-backend/entities"
 	"github.com/Kamila3820/hoca-backend/pkg/databases"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 
 	_userException "github.com/Kamila3820/hoca-backend/modules/user/exception"
 )

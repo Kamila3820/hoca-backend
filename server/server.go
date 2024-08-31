@@ -59,6 +59,8 @@ func (s *echoServer) Start() {
 		panic("Panic!")
 	})
 
+	s.initOAuth2Router()
+
 	quitCh := make(chan os.Signal, 1)
 	signal.Notify(quitCh, syscall.SIGINT, syscall.SIGTERM)
 	go s.gracefullyShutdown(quitCh)
