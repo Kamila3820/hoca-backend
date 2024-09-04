@@ -12,7 +12,7 @@ type Order struct {
 	OrderStatus        string    `gorm:"type:varchar(64);not null"`
 	Price              float64   `gorm:"not null"`
 	IsCancel           bool      `gorm:"not null;default:false;"`
-	CancellationReason string    `gorm:"type:text"`        // Reason for cancellation, if any
+	CancellationReason string    `gorm:"type:varchar(64)"` // Reason for cancellation, if any
 	CancelledBy        string    `gorm:"type:varchar(64)"` // User or Worker
 	CreatedAt          time.Time `gorm:"not null;autoCreateTime"`
 	UpdatedAt          time.Time `gorm:"not null;autoUpdateTime"`

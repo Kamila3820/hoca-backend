@@ -8,7 +8,7 @@ type UserRating struct {
 	WorkerPostID  uint64    `gorm:"not null"`
 	WorkScore     int       `gorm:"not null"` // Rating value, 1-10
 	SecurityScore int       `gorm:"not null"` // Rating value, 1-10
-	Comment       string    `gorm:"type:text"`
+	Comment       string    `gorm:"type:varchar(128)"`
 	CreatedAt     time.Time `gorm:"not null;autoCreateTime"`
 	User          *User     `gorm:"foreignKey:UserID"`
 	Post          *Post     `gorm:"foreignKey:WorkerPostID"`
