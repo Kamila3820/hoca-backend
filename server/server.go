@@ -57,12 +57,15 @@ func (s *echoServer) Start() {
 	s.app.Use(bodyLimitMiddleware)
 	s.app.Use(timeoutMiddleware)
 
+	authorizingMiddleware := s.getAuthorizingMiddleware()
+
 	s.app.GET("/v1/health", s.healthCheck)
 	s.app.GET("/v1/panic", func(c echo.Context) error {
 		panic("Panic!")
 	})
 
 	s.initOAuth2Router()
+	s.initPostRouter(authorizingMiddleware)
 
 	quitCh := make(chan os.Signal, 1)
 	signal.Notify(quitCh, syscall.SIGINT, syscall.SIGTERM)
