@@ -15,6 +15,7 @@ func main() {
 
 	userMigration(tx)
 	postCategoryMigration(tx)
+	placeTypeMigration(tx)
 	postPlaceTypeMigration(tx)
 	postMigration(tx)
 	orderMigration(tx)
@@ -38,6 +39,10 @@ func postMigration(tx *gorm.DB) {
 
 func postCategoryMigration(tx *gorm.DB) {
 	tx.Migrator().CreateTable(&entities.PostCategory{})
+}
+
+func placeTypeMigration(tx *gorm.DB) {
+	tx.Migrator().CreateTable(&entities.PlaceType{})
 }
 
 func postPlaceTypeMigration(tx *gorm.DB) {

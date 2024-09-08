@@ -13,9 +13,11 @@ func main() {
 
 	tx := db.Connect().Begin()
 
-	// postCategoryAdding(tx)
-	// postPlaceTypeAdding(tx)
+	userAdding(tx)
+	postCategoryAdding(tx)
+	placeTypeAdding(tx)
 	postsAdding(tx)
+	userRatingAdding(tx)
 
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
@@ -26,13 +28,12 @@ func main() {
 func postsAdding(tx *gorm.DB) {
 	posts := []entities.Post{
 		{
-			ID:           4444,
+			ID:           44,
 			OwnerID:      "105118840060769110477",
 			Name:         "2 Test Service",
 			Description:  "This is a test service.",
 			Avatar:       "", // Empty string
 			CategoryID:   1,
-			PlaceTypeID:  1,
 			Location:     "Test Location",
 			LocationLat:  "14.7563",
 			LocationLong: "100.5018",
@@ -45,13 +46,12 @@ func postsAdding(tx *gorm.DB) {
 			ActiveStatus: true,
 		},
 		{
-			ID:           5555,
+			ID:           55,
 			OwnerID:      "105118840060769110477",
 			Name:         "3 Test Service",
 			Description:  "This is a test service.",
 			Avatar:       "", // Empty string
 			CategoryID:   1,
-			PlaceTypeID:  1,
 			Location:     "Test Location",
 			LocationLat:  "14.7563",
 			LocationLong: "102.5018",
@@ -72,47 +72,78 @@ func postCategoryAdding(tx *gorm.DB) {
 	postCategory := []entities.PostCategory{
 		{
 			ID:          1,
-			Name:        "Cleaning",
-			Description: "House cleaning",
-		},
-		{
-			ID:          2,
-			Name:        "Clothes",
-			Description: "Clothes care",
-		},
-		{
-			ID:          3,
-			Name:        "Pets",
-			Description: "Pet sitting",
+			GroupID:     1,
+			Name:        "Deep cleaning",
+			Description: "Cleaning",
 		},
 		{
 			ID:          4,
-			Name:        "Gaedening",
-			Description: "House gardening",
+			GroupID:     2,
+			Name:        "Laundry",
+			Description: "Clothes",
+		},
+		{
+			ID:          9,
+			GroupID:     4,
+			Name:        "Pet sitting",
+			Description: "Pets",
 		},
 	}
 
 	tx.CreateInBatches(postCategory, len(postCategory))
 }
 
-func postPlaceTypeAdding(tx *gorm.DB) {
-	postPlace := []entities.PostPlaceType{
+func placeTypeAdding(tx *gorm.DB) {
+	postPlace := []entities.PlaceType{
 		{
-			ID:          1,
 			Name:        "House",
 			Description: "House Home",
 		},
 		{
-			ID:          2,
 			Name:        "Room & Condo",
 			Description: "Room & Condo",
 		},
 		{
-			ID:          3,
 			Name:        "Dormitory",
 			Description: "Dormitory",
 		},
 	}
 
 	tx.CreateInBatches(postPlace, len(postPlace))
+}
+
+func userAdding(tx *gorm.DB) {
+	users := []entities.User{
+		{
+			ID:           "205118840060769110477",
+			UserName:     "Fang",
+			FirstName:    "Attapin",
+			LastName:     "Pinya",
+			Email:        "attpinya@gmail.com",
+			Avatar:       "https://lh3.googleusercontent.com/a/ACg8ocLyvY_troho1V-6qhTv6gyWrBKoOUcZwI9VCd6EUYc7MpURVgMQ=s96-c",
+			Password:     "your_secure_password", // Add a placeholder or hash the password
+			PhoneNumber:  "0958505514",
+			IDCard:       "1234567890123", // Add a unique ID card value
+			VerifyStatus: false,
+			Latitude:     "",
+			Longtitude:   "",
+		},
+	}
+
+	tx.CreateInBatches(users, len(users))
+}
+
+func userRatingAdding(tx *gorm.DB) {
+	userRating := []entities.UserRating{
+		{
+			ID:            1,
+			UserID:        "205118840060769110477",
+			WorkerPostID:  "44",
+			WorkScore:     8,
+			SecurityScore: 10,
+			Comment:       "Good Job",
+		},
+	}
+
+	tx.CreateInBatches(userRating, len(userRating))
 }
