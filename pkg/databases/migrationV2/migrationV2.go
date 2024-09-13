@@ -13,10 +13,10 @@ func main() {
 
 	tx := db.Connect().Begin()
 
-	userAdding(tx)
-	postCategoryAdding(tx)
-	placeTypeAdding(tx)
-	postsAdding(tx)
+	// userAdding(tx)
+	// postCategoryAdding(tx)
+	// placeTypeAdding(tx)
+	// postsAdding(tx)
 	userRatingAdding(tx)
 
 	if err := tx.Commit().Error; err != nil {
@@ -136,12 +136,20 @@ func userAdding(tx *gorm.DB) {
 func userRatingAdding(tx *gorm.DB) {
 	userRating := []entities.UserRating{
 		{
-			ID:            1,
-			UserID:        "205118840060769110477",
+			ID:            2,
+			UserID:        "105118840060769110477",
 			WorkerPostID:  "44",
-			WorkScore:     8,
+			WorkScore:     3,
+			SecurityScore: 0,
+			Comment:       "Terrible work",
+		},
+		{
+			ID:            3,
+			UserID:        "105118840060769110477",
+			WorkerPostID:  "10",
+			WorkScore:     10,
 			SecurityScore: 10,
-			Comment:       "Good Job",
+			Comment:       "Excellent",
 		},
 	}
 

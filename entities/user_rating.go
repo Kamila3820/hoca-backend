@@ -1,6 +1,10 @@
 package entities
 
-import "time"
+import (
+	"time"
+
+	_userRatingModel "github.com/Kamila3820/hoca-backend/modules/user_rating/model"
+)
 
 type UserRating struct {
 	ID            uint64    `gorm:"primaryKey;autoIncrement"`
@@ -12,4 +16,18 @@ type UserRating struct {
 	CreatedAt     time.Time `gorm:"not null;autoCreateTime"`
 	User          *User     `gorm:"foreignKey:UserID"`
 	Post          *Post     `gorm:"foreignKey:WorkerPostID"`
+}
+
+func (r *UserRating) ToUserRatingModel() *_userRatingModel.UserRating {
+	return &_userRatingModel.UserRating{
+		ID:            r.ID,
+		UserID:        r.UserID,
+		Username:      r.User.UserName,
+		UserAvatar:    r.User.Avatar,
+		WorkerPostID:  r.WorkerPostID,
+		WorkScore:     r.WorkScore,
+		SecurityScore: r.SecurityScore,
+		Comment:       r.Comment,
+		CreatedAt:     r.CreatedAt,
+	}
 }
