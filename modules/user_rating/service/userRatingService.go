@@ -6,4 +6,5 @@ import (
 
 type UserRatingService interface {
 	ListRatingByPost(postID uint64) ([]*_userRatingModel.UserRating, error)
+	CreateRating(ratingCreateReq *_userRatingModel.UserRatingCreateReq) (*_userRatingModel.UserRating, error)
 }

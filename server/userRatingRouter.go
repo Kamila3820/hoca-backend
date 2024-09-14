@@ -14,4 +14,5 @@ func (s *echoServer) initUserRatingRouter(m *authorizingMiddleware) {
 	userRatingController := _userRatingController.NewUserRatingControllerImpl(userRatingService)
 
 	router.GET("/list/:postID", userRatingController.ListRatingByPostID, m.UserAuthorizing)
+	router.POST("/create/:postID", userRatingController.RatingWorker, m.UserAuthorizing)
 }

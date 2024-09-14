@@ -19,11 +19,17 @@ type UserRating struct {
 }
 
 func (r *UserRating) ToUserRatingModel() *_userRatingModel.UserRating {
+	var userName, userAvatar string
+	if r.User != nil {
+		userName = r.User.UserName
+		userAvatar = r.User.Avatar
+	}
+
 	return &_userRatingModel.UserRating{
 		ID:            r.ID,
 		UserID:        r.UserID,
-		Username:      r.User.UserName,
-		UserAvatar:    r.User.Avatar,
+		Username:      userName,
+		UserAvatar:    userAvatar,
 		WorkerPostID:  r.WorkerPostID,
 		WorkScore:     r.WorkScore,
 		SecurityScore: r.SecurityScore,

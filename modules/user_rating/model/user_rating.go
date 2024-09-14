@@ -14,4 +14,12 @@ type (
 		Comment       string    `json:"comment"`
 		CreatedAt     time.Time `json:"created_at"`
 	}
+
+	UserRatingCreateReq struct {
+		UserID        string
+		WorkerPostID  string `json:"post_id"`
+		WorkScore     int    `json:"work_score" validate:"required"`     // Rating value, 1-10
+		SecurityScore int    `json:"security_score" validate:"required"` // Rating value, 1-10
+		Comment       string `json:"comment" validate:"omitempty"`
+	}
 )
