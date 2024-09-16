@@ -15,7 +15,7 @@ type postControllerImpl struct {
 	postService _postService.PostService
 }
 
-func NewPostontrollerImpl(postService _postService.PostService) PostController {
+func NewPostControllerImpl(postService _postService.PostService) PostController {
 	return &postControllerImpl{
 		postService: postService,
 	}

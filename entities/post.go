@@ -24,6 +24,7 @@ type Post struct {
 	AmountFamily string        `gorm:"type:varchar(64);not null"`
 	TotalScore   float64       `gorm:"not null"`
 	ActiveStatus bool          `gorm:"not null;default:true"`
+	IsReserved   bool          `gorm:"not null;default:false"`
 	CreatedAt    time.Time     `gorm:"not null;autoCreateTime"`
 	UpdatedAt    time.Time     `gorm:"not null;autoUpdateTime"`
 	Category     *PostCategory `gorm:"foreignKey:CategoryID"`

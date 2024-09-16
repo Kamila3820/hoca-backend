@@ -11,7 +11,7 @@ func (s *echoServer) initPostRouter(m *authorizingMiddleware) {
 
 	postRepository := _postRepository.NewPostRepositoryImpl(s.db, s.app.Logger)
 	postService := _postService.NewPostServiceImpl(postRepository)
-	postController := _postController.NewPostontrollerImpl(postService)
+	postController := _postController.NewPostControllerImpl(postService)
 
 	router.GET("/list", postController.FindPostByDistance, m.UserAuthorizing)
 	router.POST("/create", postController.CreateWorkerPost, m.UserAuthorizing)
