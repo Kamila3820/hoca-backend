@@ -13,6 +13,8 @@ type (
 	Config struct {
 		Server   *Server   `mapstructure:"server" validate:"required"`
 		OAuth2   *OAuth2   `mapstructure:"oauth2" validate:"required"`
+		Google   *Google   `mapstructure:"google" validate:"required"`
+		Scb      *Scb      `mapstructure:"scb" validate:"required"`
 		Database *Database `mapstructure:"database" validate:"required"`
 	}
 
@@ -31,6 +33,17 @@ type (
 		Scopes          []string `mapstructure:"scopes" validate:"required"`
 		UserInfoUrl     string   `mapstructure:"userInfoUrl" validate:"required"`
 		RevokeUrl       string   `mapstructure:"revokeUrl" validate:"required"`
+	}
+
+	Google struct {
+		ApiKey string `mapstructure:"apiKey" validate:"required"`
+	}
+
+	Scb struct {
+		ScbUrl       string `mapstructure:"scbUrl" validate:"required"`
+		ScbAppKey    string `mapstructure:"scbAppKey" validate:"required"`
+		ScbAppSecret string `mapstructure:"scbAppSecret" validate:"required"`
+		ScbBillerId  string `mapstructure:"scbBillerId" validate:"required"`
 	}
 
 	endpoint struct {

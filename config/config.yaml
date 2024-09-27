@@ -18,7 +18,19 @@ oauth2:
     - "https://www.googleapis.com/auth/userinfo.profile"
   userInfoUrl: "https://www.googleapis.com/oauth2/v2/userinfo"
   revokeUrl: "https://accounts.google.com/o/oauth2/revoke"
+
+google:
+  apiKey: "AIzaSyCbMPxtX2B1eKnInkkMfg77DiLj_7P8ob4"
   
+
+scb:
+  scbUrl: "https://api-sandbox.partners.scb/partners/sandbox"
+  scbAppKey: "xxxx"
+  scbAppSecret: "xxxx"
+  scbBillerId: "xxxx"
+
+
+
 database:
   host: localhost
   port: 5432
