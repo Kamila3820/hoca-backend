@@ -14,4 +14,10 @@ func (s *echoServer) initOrderRouter(m *authorizingMiddleware) {
 	orderController := _orderController.NewOrderControllerImpl(orderService)
 
 	router.POST("/create/:postID", orderController.PlaceOrder, m.UserAuthorizing)
+	router.GET("/contact", orderController.GetUserContact, m.UserAuthorizing)
+	router.PATCH("/update/:orderID", orderController.WorkerUpdateProgress, m.UserAuthorizing)
+	router.PATCH("/cancel/:orderID", orderController.CancelOrder, m.UserAuthorizing)
+	router.GET("/timer/:orderID", orderController.ConfirmationTimerOrder, m.UserAuthorizing)
+
+	router.GET("/prepare/:orderID", orderController.GetPreparingOrder, m.UserAuthorizing)
 }
