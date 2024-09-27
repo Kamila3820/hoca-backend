@@ -68,6 +68,7 @@ func (s *echoServer) Start() {
 	s.initPostRouter(authorizingMiddleware)
 	s.initUserRatingRouter(authorizingMiddleware)
 	s.initOrderRouter(authorizingMiddleware)
+	s.initHistoryRouter(authorizingMiddleware)
 
 	quitCh := make(chan os.Signal, 1)
 	signal.Notify(quitCh, syscall.SIGINT, syscall.SIGTERM)
