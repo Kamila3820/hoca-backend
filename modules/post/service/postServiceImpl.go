@@ -75,6 +75,15 @@ func toRadians(degrees float64) float64 {
 	return degrees * (math.Pi / 180.0)
 }
 
+func (s *postServiceImpl) GetPostByUserID(userID string) (*_postModel.Post, error) {
+	post, err := s.postRepository.FindPostByUserID(userID)
+	if err != nil {
+		return nil, errors.New("Failed to get post by user_id")
+	}
+
+	return post.ToPostModel(), nil
+}
+
 func (s *postServiceImpl) CreatingPost(postCreatingReq *_postModel.PostCreatingReq) (*_postModel.Post, error) {
 	postEntity := &entities.Post{
 		OwnerID:      postCreatingReq.OwnerID,

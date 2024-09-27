@@ -44,6 +44,17 @@ func (r *postRepositoryImpl) FindPostByID(postID uint64) (*entities.Post, error)
 	return post, nil
 }
 
+func (r *postRepositoryImpl) FindPostByUserID(userID string) (*entities.Post, error) {
+	post := new(entities.Post)
+
+	if err := r.db.Connect().Where("owner_id = ?", userID).Preload("PlaceTypes").First(post).Error; err != nil {
+		r.logger.Errorf("Failed to find post by UserID: %s", err.Error())
+		return nil, err
+	}
+
+	return post, nil
+}
+
 func (r *postRepositoryImpl) CreatingPost(postEntity *entities.Post) (*entities.Post, error) {
 	post := new(entities.Post)
 

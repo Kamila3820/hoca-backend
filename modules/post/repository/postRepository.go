@@ -8,6 +8,7 @@ import (
 type PostRepository interface {
 	FindPost() ([]*entities.Post, error)
 	FindPostByID(postID uint64) (*entities.Post, error)
+	FindPostByUserID(userID string) (*entities.Post, error)
 	CreatingPost(postEntity *entities.Post) (*entities.Post, error)
 	GetPlaceTypesByIds(placeTypeIDs []uint64) ([]*entities.PlaceType, error)
 	EditingPost(postID uint64, postEditingReq *_postModel.PostEditingReq) (uint64, error)

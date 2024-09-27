@@ -49,6 +49,23 @@ func (c *postControllerImpl) FindPostByDistance(pctx echo.Context) error {
 	return pctx.JSON(http.StatusOK, workerPost)
 }
 
+func (c *postControllerImpl) GetPostByUserID(pctx echo.Context) error {
+	userID := pctx.Get("userID")
+	userIDStr, ok := userID.(string)
+	if !ok {
+		return pctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "Failed to retrieve user ID from context",
+		})
+	}
+
+	post, err := c.postService.GetPostByUserID(userIDStr)
+	if err != nil {
+		return custom.Error(pctx, http.StatusInternalServerError, err)
+	}
+
+	return pctx.JSON(http.StatusOK, post)
+}
+
 func (c *postControllerImpl) CreateWorkerPost(pctx echo.Context) error {
 	userID := pctx.Get("userID")
 	userIDStr, ok := userID.(string)
