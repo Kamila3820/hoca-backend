@@ -39,3 +39,51 @@ func (r *orderRepositoryImpl) FindPostByID(postID uint64) (*entities.Post, error
 
 	return post, nil
 }
+
+func (r *orderRepositoryImpl) FindUserByID(userID string) (*entities.User, error) {
+	user := new(entities.User)
+	if err := r.db.Connect().Where("id = ?", userID).First(user).Error; err != nil {
+		r.logger.Errorf("Failed to find user by ID: %s", err.Error())
+		return nil, err
+	}
+	return user, nil
+}
+
+func (r *orderRepositoryImpl) FindOrderByID(orderID uint64) (*entities.Order, error) {
+	order := new(entities.Order)
+
+	if err := r.db.Connect().Where("id = ?", orderID).Preload("User").Preload("Post").First(&order).Error; err != nil {
+		r.logger.Errorf("Failed to find order by ID: %s", err.Error())
+		return nil, err
+	}
+
+	return order, nil
+}
+
+func (r *orderRepositoryImpl) UpdateOrder(orderEntity *entities.Order) error {
+	if err := r.db.Connect().Save(orderEntity).Error; err != nil {
+		r.logger.Errorf("Failed to update order: %s", err.Error())
+		return err
+	}
+	return nil
+}
+
+func (r *orderRepositoryImpl) UpdatePost(postEntity *entities.Post) error {
+	if err := r.db.Connect().Save(postEntity).Error; err != nil {
+		r.logger.Errorf("Failed to update post: %s", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+func (r *orderRepositoryImpl) CreatingHistory(historyEntity *entities.History) (*entities.History, error) {
+	history := new(entities.History)
+
+	if err := r.db.Connect().Create(historyEntity).Scan(history).Error; err != nil {
+		r.logger.Errorf("Failed to create order history: %s", err.Error())
+		return nil, err
+	}
+
+	return history, nil
+}
