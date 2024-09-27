@@ -1,7 +1,8 @@
 package service
 
 import (
-	"fmt"
+	"errors"
+	"strconv"
 
 	"github.com/Kamila3820/hoca-backend/entities"
 	_userRatingModel "github.com/Kamila3820/hoca-backend/modules/user_rating/model"
@@ -32,22 +33,51 @@ func (s *userRatingServiceImpl) ListRatingByPost(postID uint64) ([]*_userRatingM
 	return postRating, nil
 }
 
-func (s *userRatingServiceImpl) CreateRating(ratingCreateReq *_userRatingModel.UserRatingCreateReq) (*_userRatingModel.UserRating, error) {
+func (s *userRatingServiceImpl) CreateRating(raterID string, historyID uint64, ratingCreateReq *_userRatingModel.UserRatingCreateReq) (*_userRatingModel.UserRating, error) {
+	history, err := s.userRatingRepository.GetHistoryByID(historyID)
+	if err != nil {
+		return nil, errors.New("service: cannot find history by id")
+	}
+
+	if history.Status == "cancelled" {
+		return nil, errors.New("service: cannot rate the order that has been cancelled")
+	}
+
+	if history.IsRated {
+		return nil, errors.New("service: cannot rate the order that has been rated")
+	}
+
+	orderID, err := strconv.ParseUint(history.OrderID, 10, 64)
+	if err != nil {
+		return nil, errors.New("service: cannot find history by id")
+	}
+
+	order, err := s.userRatingRepository.FindOrderByID(orderID)
+	if err != nil {
+		return nil, errors.New("service: cannot find order by the history")
+	}
+
+	if raterID != order.UserID {
+		return nil, errors.New("service: you have no permission to rate the worker")
+	}
+
+	postID := strconv.Itoa(int(order.WorkerPostID))
+
 	userRatingEntity := &entities.UserRating{
-		UserID:        ratingCreateReq.UserID,
-		WorkerPostID:  ratingCreateReq.WorkerPostID,
+		UserID:        order.UserID,
+		WorkerPostID:  postID,
 		WorkScore:     ratingCreateReq.WorkScore,
 		SecurityScore: ratingCreateReq.SecurityScore,
 		Comment:       ratingCreateReq.Comment,
 	}
-	fmt.Println("1 SERVICE")
 
 	userRating, err := s.userRatingRepository.CreateRating(userRatingEntity)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("service: cannot rate the worker")
 	}
-	fmt.Println("2 SERVICE")
-	fmt.Printf("userRating model: %+v\n", userRating)
+
+	history.IsRated = true
+	s.userRatingRepository.UpdateHistoryByID(history)
 
 	return userRating.ToUserRatingModel(), nil
 }

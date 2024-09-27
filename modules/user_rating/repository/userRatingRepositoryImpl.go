@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"fmt"
-
 	"github.com/Kamila3820/hoca-backend/entities"
 	"github.com/Kamila3820/hoca-backend/pkg/databases"
 	"github.com/labstack/echo/v4"
@@ -32,8 +30,6 @@ func (r *userRatingRepositoryImpl) ListRatingByPost(postID uint64) ([]*entities.
 
 func (r *userRatingRepositoryImpl) CreateRating(ratingEntity *entities.UserRating) (*entities.UserRating, error) {
 	userRating := new(entities.UserRating)
-	fmt.Println("1 REPO")
-	fmt.Printf("Rating Entity: %+v\n", ratingEntity)
 
 	if err := r.db.Connect().Create(ratingEntity).
 		Preload("User").
@@ -42,7 +38,39 @@ func (r *userRatingRepositoryImpl) CreateRating(ratingEntity *entities.UserRatin
 		r.logger.Errorf("Failed to create ratings: %s", err.Error())
 		return nil, err
 	}
-	fmt.Println("2 REPO")
 
 	return userRating, nil
+}
+
+// History
+func (r *userRatingRepositoryImpl) GetHistoryByID(historyID uint64) (*entities.History, error) {
+	history := new(entities.History)
+
+	if err := r.db.Connect().First(&history, historyID).Error; err != nil {
+		r.logger.Errorf("Failed to find history by ID: %s", err.Error())
+		return nil, err
+	}
+
+	return history, nil
+}
+
+func (r *userRatingRepositoryImpl) UpdateHistoryByID(historyEntity *entities.History) error {
+	if err := r.db.Connect().Save(historyEntity).Error; err != nil {
+		r.logger.Errorf("Failed to update history: %s", err.Error())
+		return err
+	}
+
+	return nil
+}
+
+// Order
+func (r *userRatingRepositoryImpl) FindOrderByID(orderID uint64) (*entities.Order, error) {
+	order := new(entities.Order)
+
+	if err := r.db.Connect().Where("id = ?", orderID).Preload("User").Preload("Post").First(&order).Error; err != nil {
+		r.logger.Errorf("Failed to find order by ID: %s", err.Error())
+		return nil, err
+	}
+
+	return order, nil
 }

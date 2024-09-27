@@ -30,6 +30,15 @@ func (c *userRatingControllerImpl) getPostID(pctx echo.Context) (uint64, error) 
 
 	return postID, nil
 }
+func (c *userRatingControllerImpl) getHistoryID(pctx echo.Context) (uint64, error) {
+	historyIDStr := pctx.Param("historyID")
+	historyID, err := strconv.ParseUint(historyIDStr, 10, 64)
+	if err != nil {
+		return 0, nil
+	}
+
+	return historyID, nil
+}
 
 func (c *userRatingControllerImpl) ListRatingByPostID(pctx echo.Context) error {
 	postID, err := c.getPostID(pctx)
@@ -53,10 +62,11 @@ func (c *userRatingControllerImpl) RatingWorker(pctx echo.Context) error {
 			"error": "Failed to retrieve user ID from context",
 		})
 	}
-	fmt.Println("1")
 
-	postID := pctx.Param("postID")
-	fmt.Printf("userID: %v, postID: %v\n", userIDStr, postID)
+	historyID, err := c.getHistoryID(pctx)
+	if err != nil {
+		return custom.Error(pctx, http.StatusBadRequest, err)
+	}
 
 	userRatingCreateReq := new(_userRatingModel.UserRatingCreateReq)
 
@@ -67,10 +77,7 @@ func (c *userRatingControllerImpl) RatingWorker(pctx echo.Context) error {
 	}
 	fmt.Println("2")
 
-	userRatingCreateReq.UserID = userIDStr
-	userRatingCreateReq.WorkerPostID = postID
-
-	userRating, err := c.userRatingService.CreateRating(userRatingCreateReq)
+	userRating, err := c.userRatingService.CreateRating(userIDStr, historyID, userRatingCreateReq)
 	if err != nil {
 		return custom.Error(pctx, http.StatusInternalServerError, err)
 	}
