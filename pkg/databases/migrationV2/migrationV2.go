@@ -137,7 +137,7 @@ func userRatingAdding(tx *gorm.DB) {
 	userRating := []entities.UserRating{
 		{
 			ID:            30,
-			UserID:        "105118840060769110477",
+			UserID:        "205118840060769110477",
 			WorkerPostID:  "44",
 			WorkScore:     3,
 			SecurityScore: 0,
@@ -145,8 +145,8 @@ func userRatingAdding(tx *gorm.DB) {
 		},
 		{
 			ID:            31,
-			UserID:        "105118840060769110477",
-			WorkerPostID:  "10",
+			UserID:        "205118840060769110477",
+			WorkerPostID:  "55",
 			WorkScore:     10,
 			SecurityScore: 10,
 			Comment:       "Excellent",
