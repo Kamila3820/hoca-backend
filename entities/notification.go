@@ -1,18 +1,34 @@
 package entities
 
-import "time"
+import (
+	"time"
+
+	_notiModel "github.com/Kamila3820/hoca-backend/modules/notification/model"
+)
 
 type Notification struct {
 	Id               *uint64 `gorm:"primaryKey"`
-	Trigger          *User   `gorm:"foreignKey:TriggerId"`
-	TriggerId        *string
-	Triggee          *User `gorm:"foreignKey:TriggeeId"`
-	TriggeeId        *string
-	Post             *Post `gorm:"foreignKey:PostId"`
-	PostId           *string
-	NotificationType string     `gorm:"type:varchar(128); not null"`
-	CreatedAt        *time.Time `gorm:"not null"` // Embedded field
-	UpdatedAt        *time.Time `gorm:"not null"` // Embedded field
+	Trigger          *User   `gorm:"foreignKey:TriggerID"`
+	TriggerID        *string
+	Triggee          *User `gorm:"foreignKey:TriggeeID"`
+	TriggeeID        *string
+	Order            *Order `gorm:"foreignKey:OrderID"`
+	OrderID          *uint64
+	UserRating       *UserRating `gorm:"foreignKey:UserRatingID"`
+	UserRatingID     *uint64
+	NotificationType *_notiModel.NotificationEnum `gorm:"type:notification_enum; not null"`
+	CreatedAt        *time.Time                   `gorm:"not null"`
+	UpdatedAt        *time.Time                   `gorm:"not null"`
 }
 
-// 	NotificationType *enum.Notification `gorm:"type:ENUM('comment','like','user_donate','post_donate'); not null"`
+func (n *Notification) ToNotificationResponseModel() *_notiModel.NotificationResponse {
+	return &_notiModel.NotificationResponse{
+		Id:               *n.Id,
+		UserID:           n.Trigger.ID,
+		Username:         n.Trigger.UserName,
+		Avatar:           n.Trigger.Avatar,
+		TriggerID:        *n.TriggerID,
+		NotificationType: *n.NotificationType,
+		CreatedAt:        n.CreatedAt,
+	}
+}

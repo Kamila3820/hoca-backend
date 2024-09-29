@@ -2,9 +2,11 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/Kamila3820/hoca-backend/entities"
+	_notiModel "github.com/Kamila3820/hoca-backend/modules/notification/model"
 	_userRatingModel "github.com/Kamila3820/hoca-backend/modules/user_rating/model"
 	_userRatingRepository "github.com/Kamila3820/hoca-backend/modules/user_rating/repository"
 )
@@ -76,8 +78,28 @@ func (s *userRatingServiceImpl) CreateRating(raterID string, historyID uint64, r
 		return nil, errors.New("service: cannot rate the worker")
 	}
 
-	history.IsRated = true
-	s.userRatingRepository.UpdateHistoryByID(history)
+	go func() {
+		history.IsRated = true
+		s.userRatingRepository.UpdateHistoryByID(history)
+
+		ratingType := _notiModel.NotificationRating
+		notification := &entities.Notification{
+			Trigger:          nil,
+			TriggerID:        &raterID,
+			Triggee:          nil,
+			TriggeeID:        &order.Post.OwnerID,
+			Order:            nil,
+			OrderID:          nil,
+			UserRating:       nil,
+			UserRatingID:     &userRating.ID,
+			NotificationType: &ratingType,
+			CreatedAt:        nil,
+		}
+
+		if err := s.userRatingRepository.CreateNotification(notification); err != nil {
+			fmt.Printf("service: unable to create notification %v", err.Error)
+		}
+	}()
 
 	return userRating.ToUserRatingModel(), nil
 }

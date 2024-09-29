@@ -68,6 +68,7 @@ func (r *orderRepositoryImpl) UpdateOrder(orderEntity *entities.Order) error {
 	return nil
 }
 
+// Post
 func (r *orderRepositoryImpl) UpdatePost(postEntity *entities.Post) error {
 	if err := r.db.Connect().Save(postEntity).Error; err != nil {
 		r.logger.Errorf("Failed to update post: %s", err.Error())
@@ -77,6 +78,7 @@ func (r *orderRepositoryImpl) UpdatePost(postEntity *entities.Post) error {
 	return nil
 }
 
+// History
 func (r *orderRepositoryImpl) CreatingHistory(historyEntity *entities.History) (*entities.History, error) {
 	history := new(entities.History)
 
@@ -86,4 +88,15 @@ func (r *orderRepositoryImpl) CreatingHistory(historyEntity *entities.History) (
 	}
 
 	return history, nil
+}
+
+// Noti
+// Noti
+func (r *orderRepositoryImpl) CreateNotification(notiEntityy *entities.Notification) error {
+	if err := r.db.Connect().Create(&notiEntityy).Error; err != nil {
+		r.logger.Errorf("Failed to create notification entity: %s", err.Error())
+		return err
+	}
+
+	return nil
 }

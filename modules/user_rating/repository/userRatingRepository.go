@@ -9,4 +9,6 @@ type UserRatingRepository interface {
 	GetHistoryByID(historyID uint64) (*entities.History, error)
 	UpdateHistoryByID(historyEntity *entities.History) error
 	FindOrderByID(orderID uint64) (*entities.Order, error)
+
+	CreateNotification(notiEntityy *entities.Notification) error
 }

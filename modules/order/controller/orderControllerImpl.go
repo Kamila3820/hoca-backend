@@ -168,7 +168,10 @@ func (c *orderControllerImpl) GetPreparingOrder(pctx echo.Context) error {
 		return custom.Error(pctx, http.StatusBadRequest, err)
 	}
 
-	order, distance, err := c.orderService.GetPreparingOrder(orderID)
+	customerLat := pctx.QueryParam("lat")
+	customerLong := pctx.QueryParam("long")
+
+	order, distance, err := c.orderService.GetPreparingOrder(orderID, customerLat, customerLong)
 	if err != nil {
 		return custom.Error(pctx, http.StatusInternalServerError, err)
 	}

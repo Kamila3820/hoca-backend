@@ -68,9 +68,19 @@ func (r *userRatingRepositoryImpl) FindOrderByID(orderID uint64) (*entities.Orde
 	order := new(entities.Order)
 
 	if err := r.db.Connect().Where("id = ?", orderID).Preload("User").Preload("Post").First(&order).Error; err != nil {
-		r.logger.Errorf("Failed to find order by ID: %s", err.Error())
+		r.logger.Errorf("Failed to query order by ID: %s", err.Error())
 		return nil, err
 	}
 
 	return order, nil
+}
+
+// Noti
+func (r *userRatingRepositoryImpl) CreateNotification(notiEntityy *entities.Notification) error {
+	if err := r.db.Connect().Create(&notiEntityy).Error; err != nil {
+		r.logger.Errorf("Failed to create notification entity: %s", err.Error())
+		return err
+	}
+
+	return nil
 }

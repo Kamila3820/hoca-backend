@@ -11,4 +11,6 @@ type OrderRepository interface {
 	FindPostByID(postID uint64) (*entities.Post, error)
 	FindUserByID(userID string) (*entities.User, error)
 	UpdatePost(postEntity *entities.Post) error
+
+	CreateNotification(notiEntityy *entities.Notification) error
 }

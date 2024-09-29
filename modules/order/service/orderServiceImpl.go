@@ -6,8 +6,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Kamila3820/hoca-backend/config"
 	"github.com/Kamila3820/hoca-backend/entities"
 	"github.com/Kamila3820/hoca-backend/helper"
+	_notiModel "github.com/Kamila3820/hoca-backend/modules/notification/model"
 	_orderModel "github.com/Kamila3820/hoca-backend/modules/order/model"
 	_orderRepository "github.com/Kamila3820/hoca-backend/modules/order/repository"
 	_userModel "github.com/Kamila3820/hoca-backend/modules/user/model"
@@ -49,13 +51,34 @@ func (s *orderServiceImpl) CreatingOrder(orderCreatingReq *_orderModel.OrderReq,
 		return nil, errors.New("Can not order a post that running the progress")
 	}
 
-	workerPost.IsReserved = true
-	s.orderRepository.UpdatePost(workerPost)
-
 	order, err := s.orderRepository.CreatingOrder(orderEntity)
 	if err != nil {
 		return nil, err
 	}
+
+	go func() {
+		workerPost.IsReserved = true
+		s.orderRepository.UpdatePost(workerPost)
+
+		// Create noti
+		orderType := _notiModel.NotificationPlaceOrder
+		notification := &entities.Notification{
+			Trigger:          nil,
+			TriggerID:        &order.UserID,
+			Triggee:          nil,
+			TriggeeID:        &workerPost.OwnerID,
+			Order:            nil,
+			OrderID:          &order.ID,
+			UserRating:       nil,
+			UserRatingID:     nil,
+			NotificationType: &orderType,
+			CreatedAt:        nil,
+		}
+
+		if err := s.orderRepository.CreateNotification(notification); err != nil {
+			fmt.Printf("service: unable to create notification %v", err.Error)
+		}
+	}()
 
 	return order.ToOrderModel(), nil
 }
@@ -98,18 +121,67 @@ func (s *orderServiceImpl) UpdateOrderProgress(updaterID string, orderID uint64,
 		order.OrderStatus = "cancelled"
 		order.IsCancel = true
 		order.CancellationReason = "worker did not confirm within the time"
-		order.CancelledBy = "worker"
+		order.CancelledBy = "system"
 		s.orderRepository.UpdateOrder(order)
-		return nil, fmt.Errorf("order automatically cancelled due to no confirmation")
 	}
 
 	order.OrderStatus = newStatus
 	s.orderRepository.UpdateOrder(order)
 
+	if newStatus == "preparing" {
+		go func() {
+			// Create noti
+			orderType := _notiModel.NotificationPreparing
+			notification := &entities.Notification{
+				Trigger:          nil,
+				TriggerID:        &workerPost.OwnerID,
+				Triggee:          nil,
+				TriggeeID:        &order.UserID,
+				Order:            nil,
+				OrderID:          &order.ID,
+				UserRating:       nil,
+				UserRatingID:     nil,
+				NotificationType: &orderType,
+				CreatedAt:        nil,
+			}
+
+			if err := s.orderRepository.CreateNotification(notification); err != nil {
+				fmt.Printf("service: unable to create notification %v", err.Error)
+			}
+		}()
+	}
+
+	if newStatus == "working" {
+		go func() {
+			// Create noti
+			orderType := _notiModel.NotificationWorking
+			notification := &entities.Notification{
+				Trigger:          nil,
+				TriggerID:        &workerPost.OwnerID,
+				Triggee:          nil,
+				TriggeeID:        &order.UserID,
+				Order:            nil,
+				OrderID:          &order.ID,
+				UserRating:       nil,
+				UserRatingID:     nil,
+				NotificationType: &orderType,
+				CreatedAt:        nil,
+			}
+
+			if err := s.orderRepository.CreateNotification(notification); err != nil {
+				fmt.Printf("service: unable to create notification %v", err.Error)
+			}
+		}()
+	}
+
 	if newStatus == "complete" {
 		// Update worker post
 		workerPost.IsReserved = false
 		s.orderRepository.UpdatePost(workerPost)
+
+		// Update order
+		order.Paid = true
+		s.orderRepository.UpdateOrder(order)
 
 		// Create history
 		history := &entities.History{
@@ -123,6 +195,27 @@ func (s *orderServiceImpl) UpdateOrderProgress(updaterID string, orderID uint64,
 		if err != nil {
 			return nil, errors.New("cannot create order history")
 		}
+
+		go func() {
+			// Create noti
+			orderType := _notiModel.NotificationComplete
+			notification := &entities.Notification{
+				Trigger:          nil,
+				TriggerID:        &workerPost.OwnerID,
+				Triggee:          nil,
+				TriggeeID:        &order.UserID,
+				Order:            nil,
+				OrderID:          &order.ID,
+				UserRating:       nil,
+				UserRatingID:     nil,
+				NotificationType: &orderType,
+				CreatedAt:        nil,
+			}
+
+			if err := s.orderRepository.CreateNotification(notification); err != nil {
+				fmt.Printf("service: unable to create notification %v", err.Error)
+			}
+		}()
 	}
 
 	return order.ToOrderModel(), nil
@@ -157,20 +250,60 @@ func (s *orderServiceImpl) CancelOrder(orderID uint64, reason string, cancelledB
 	workerPost.IsReserved = false
 	s.orderRepository.UpdatePost(workerPost)
 
-	// Create history
-	history := &entities.History{
-		UserID:             "",
-		OrderID:            strconv.Itoa(int(order.ID)),
-		Status:             "cancelled",
-		CancellationReason: reason,
-		CancelledBy:        cancelledBy,
-		IsRated:            false,
-		CreatedAt:          time.Now(),
-	}
-	_, err = s.orderRepository.CreatingHistory(history)
-	if err != nil {
-		return errors.New("cannot create order history")
-	}
+	go func() {
+		// Create history
+		history := &entities.History{
+			UserID:             "",
+			OrderID:            strconv.Itoa(int(order.ID)),
+			Status:             "cancelled",
+			CancellationReason: reason,
+			CancelledBy:        cancelledBy,
+			IsRated:            false,
+			CreatedAt:          time.Now(),
+		}
+		_, err = s.orderRepository.CreatingHistory(history)
+		if err != nil {
+			fmt.Printf("service: unable to create history %v", err.Error)
+		}
+
+		// Create noti
+		var notification *entities.Notification
+
+		if cancelledBy == "customer" {
+			cancelType := _notiModel.NotificationUserCancel
+			notification = &entities.Notification{
+				Trigger:          nil,
+				TriggerID:        &order.UserID,
+				Triggee:          nil,
+				TriggeeID:        &order.Post.OwnerID,
+				Order:            nil,
+				OrderID:          &orderID,
+				UserRating:       nil,
+				UserRatingID:     nil,
+				NotificationType: &cancelType,
+				CreatedAt:        nil,
+			}
+		}
+		if cancelledBy == "worker" {
+			cancelType := _notiModel.NotificationWorkerCancel
+			notification = &entities.Notification{
+				Trigger:          nil,
+				TriggerID:        &order.Post.OwnerID,
+				Triggee:          nil,
+				TriggeeID:        &order.UserID,
+				Order:            nil,
+				OrderID:          &orderID,
+				UserRating:       nil,
+				UserRatingID:     nil,
+				NotificationType: &cancelType,
+				CreatedAt:        nil,
+			}
+		}
+
+		if err := s.orderRepository.CreateNotification(notification); err != nil {
+			fmt.Printf("service: unable to create notification %v", err.Error)
+		}
+	}()
 
 	return nil
 }
@@ -195,17 +328,56 @@ func (s *orderServiceImpl) StartConfirmationTimer(orderID uint64) {
 
 			workerPost, err := s.orderRepository.FindPostByID(order.WorkerPostID)
 			if err != nil {
-				fmt.Println("Failed to find post", err)
+				fmt.Println("service: failed to find post", err)
 				return
 			}
 			workerPost.IsReserved = false
 
 			s.orderRepository.UpdatePost(workerPost)
+
+			// Create noti to customer
+			cancelTypeCustomer := _notiModel.NotificationPlaceOrder
+			notification := &entities.Notification{
+				Trigger:          nil,
+				TriggerID:        nil,
+				Triggee:          nil,
+				TriggeeID:        &order.UserID,
+				Order:            nil,
+				OrderID:          &order.ID,
+				UserRating:       nil,
+				UserRatingID:     nil,
+				NotificationType: &cancelTypeCustomer,
+				CreatedAt:        nil,
+			}
+
+			if err := s.orderRepository.CreateNotification(notification); err != nil {
+				fmt.Printf("service: unable to create notification %v", err.Error)
+			}
+
+			// Create noti to worker
+			cancelTypeWorker := _notiModel.NotificationPlaceOrder
+			notificationWorker := &entities.Notification{
+				Trigger:          nil,
+				TriggerID:        nil,
+				Triggee:          nil,
+				TriggeeID:        &workerPost.OwnerID,
+				Order:            nil,
+				OrderID:          &order.ID,
+				UserRating:       nil,
+				UserRatingID:     nil,
+				NotificationType: &cancelTypeWorker,
+				CreatedAt:        nil,
+			}
+
+			if err := s.orderRepository.CreateNotification(notificationWorker); err != nil {
+				fmt.Printf("service: unable to create notification %v", err.Error)
+			}
 		}
+
 	}()
 }
 
-func (s *orderServiceImpl) GetPreparingOrder(orderID uint64) (*_orderModel.Order, *_orderModel.DistanceMatrixResponse, error) {
+func (s *orderServiceImpl) GetPreparingOrder(orderID uint64, customerLat, customerLong string) (*_orderModel.Order, *helper.DirectionsResponse, error) {
 	order, err := s.orderRepository.FindOrderByID(orderID)
 	if err != nil {
 		return nil, nil, errors.New("cannot find order by id")
@@ -215,10 +387,28 @@ func (s *orderServiceImpl) GetPreparingOrder(orderID uint64) (*_orderModel.Order
 		return order.ToOrderModel(), nil, nil
 	}
 
-	distanceResponse, err := helper.DistanceMatrix(order.User.Latitude+","+order.User.Longtitude, order.Post.LocationLat+","+order.Post.LocationLong)
+	workerPost, err := s.orderRepository.FindPostByID(order.WorkerPostID)
 	if err != nil {
-		return nil, nil, errors.New("failed to get distance information")
+		return nil, nil, errors.New("order cannot be update")
 	}
 
-	return order.ToOrderModel(), (*_orderModel.DistanceMatrixResponse)(distanceResponse), nil
+	workerLat := workerPost.LocationLat
+	workerLong := workerPost.LocationLong
+
+	workerLocation := fmt.Sprintf("%s,%s", workerLat, workerLong)
+	customerLocation := fmt.Sprintf("%s,%s", customerLat, customerLong)
+
+	directionsRequest := &helper.DirectionsRequest{
+		Origin:      workerLocation,
+		Destination: customerLocation,
+		Mode:        "driving",
+	}
+
+	client := helper.Client{APIKey: config.ConfigGetting().Google.ApiKey}
+	directionsResponse, err := client.Directions(directionsRequest)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get directions: %v", err)
+	}
+
+	return order.ToOrderModel(), directionsResponse, nil
 }
