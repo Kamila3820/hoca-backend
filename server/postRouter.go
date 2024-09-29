@@ -14,7 +14,8 @@ func (s *echoServer) initPostRouter(m *authorizingMiddleware) {
 	postController := _postController.NewPostControllerImpl(postService)
 
 	router.GET("/list", postController.FindPostByDistance, m.UserAuthorizing)
-	router.GET("/me", postController.GetPostByUserID, m.UserAuthorizing)
+	router.GET("/me", postController.GetOwnPost, m.UserAuthorizing)
+	router.GET("/:postID", postController.GetPostByPostID, m.UserAuthorizing)
 	router.POST("/create", postController.CreateWorkerPost, m.UserAuthorizing)
 	router.PATCH("/edit/:postID", postController.EditWorkerPost, m.UserAuthorizing)
 	router.DELETE("/delete/:postID", postController.DeleteWorkerPost, m.UserAuthorizing)

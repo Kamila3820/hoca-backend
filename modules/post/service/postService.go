@@ -5,7 +5,8 @@ import (
 )
 
 type PostService interface {
-	FindPostByDistance(userLat, userLong float64) ([]*_postModel.Post, error)
+	FindPostByDistance(userID string, userLat, userLong float64) ([]*_postModel.Post, error)
+	FindPostByPostID(postID uint64) (*_postModel.Post, error)
 	GetPostByUserID(userID string) (*_postModel.Post, error)
 	CreatingPost(postCreatingReq *_postModel.PostCreatingReq) (*_postModel.Post, error)
 	EditingPost(postID uint64, postEditingReq *_postModel.PostEditingReq) (*_postModel.Post, error)

@@ -21,7 +21,7 @@ func NewPostServiceImpl(postRepository _postRepository.PostRepository) PostServi
 	}
 }
 
-func (s *postServiceImpl) FindPostByDistance(userLat, userLong float64) ([]*_postModel.Post, error) {
+func (s *postServiceImpl) FindPostByDistance(userID string, userLat, userLong float64) ([]*_postModel.Post, error) {
 	posts, err := s.postRepository.FindPost()
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func (s *postServiceImpl) FindPostByDistance(userLat, userLong float64) ([]*_pos
 		distanceStr := fmt.Sprintf("%.1f", distance)
 		newDistance := parseCoordinate(distanceStr)
 
-		if newDistance <= 5.0 && post.ActiveStatus == true {
+		if newDistance <= 5.0 && post.ActiveStatus == true && post.OwnerID != userID {
 			post.Distance = distanceStr
 			distancePost = append(distancePost, post.ToPostModel())
 		}
@@ -75,10 +75,19 @@ func toRadians(degrees float64) float64 {
 	return degrees * (math.Pi / 180.0)
 }
 
+func (s *postServiceImpl) FindPostByPostID(postID uint64) (*_postModel.Post, error) {
+	post, err := s.postRepository.FindPostByID(postID)
+	if err != nil {
+		return nil, errors.New("service: failed to get post by post_id")
+	}
+
+	return post.ToPostModel(), nil
+}
+
 func (s *postServiceImpl) GetPostByUserID(userID string) (*_postModel.Post, error) {
 	post, err := s.postRepository.FindPostByUserID(userID)
 	if err != nil {
-		return nil, errors.New("Failed to get post by user_id")
+		return nil, errors.New("service: failed to get post by user_id")
 	}
 
 	return post.ToPostModel(), nil

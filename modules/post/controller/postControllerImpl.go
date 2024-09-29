@@ -29,7 +29,6 @@ func (c *postControllerImpl) FindPostByDistance(pctx echo.Context) error {
 			"error": "Failed to retrieve user ID from context",
 		})
 	}
-	fmt.Println(userIDStr)
 
 	userLat, err := strconv.ParseFloat(pctx.QueryParam("lat"), 64)
 	if err != nil {
@@ -41,7 +40,7 @@ func (c *postControllerImpl) FindPostByDistance(pctx echo.Context) error {
 		return pctx.JSON(http.StatusBadRequest, "Invalid longitude")
 	}
 
-	workerPost, err := c.postService.FindPostByDistance(userLat, userLong)
+	workerPost, err := c.postService.FindPostByDistance(userIDStr, userLat, userLong)
 	if err != nil {
 		return pctx.String(http.StatusInternalServerError, err.Error())
 	}
@@ -49,7 +48,7 @@ func (c *postControllerImpl) FindPostByDistance(pctx echo.Context) error {
 	return pctx.JSON(http.StatusOK, workerPost)
 }
 
-func (c *postControllerImpl) GetPostByUserID(pctx echo.Context) error {
+func (c *postControllerImpl) GetOwnPost(pctx echo.Context) error {
 	userID := pctx.Get("userID")
 	userIDStr, ok := userID.(string)
 	if !ok {
@@ -64,6 +63,20 @@ func (c *postControllerImpl) GetPostByUserID(pctx echo.Context) error {
 	}
 
 	return pctx.JSON(http.StatusOK, post)
+}
+
+func (c *postControllerImpl) GetPostByPostID(pctx echo.Context) error {
+	postID, err := c.getPostID(pctx)
+	if err != nil {
+		return custom.Error(pctx, http.StatusBadRequest, err)
+	}
+
+	workerPost, err := c.postService.FindPostByPostID(postID)
+	if err != nil {
+		return custom.Error(pctx, http.StatusInternalServerError, err)
+	}
+
+	return pctx.JSON(http.StatusOK, workerPost)
 }
 
 func (c *postControllerImpl) CreateWorkerPost(pctx echo.Context) error {
