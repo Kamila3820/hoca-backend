@@ -15,8 +15,8 @@ func main() {
 
 	// userAdding(tx)
 	// postCategoryAdding(tx)
-	// placeTypeAdding(tx)
-	// postsAdding(tx)
+	placeTypeAdding(tx)
+	postsAdding(tx)
 	userRatingAdding(tx)
 
 	if err := tx.Commit().Error; err != nil {

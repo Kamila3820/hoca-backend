@@ -12,14 +12,12 @@ type Order struct {
 	WorkerPostID       uint64    `gorm:"not null"`
 	ContactName        string    `gorm:"type:varchar(64)"`
 	ContactPhone       string    `gorm:"type:varchar(20)"`
-	TransactionID      string    `gorm:"type:varchar(128)"`
 	PaymentType        string    `gorm:"type:varchar(64);not null"`
 	SpecificPlace      string    `gorm:"type:varchar(64)"`
 	Note               string    `gorm:"type:varchar(64)"`
 	OrderStatus        string    `gorm:"type:varchar(64);not null"`
 	Price              float64   `gorm:"not null"`
-	PaymentStatus      string    `gorm:"type:varchar(64)"` // e.g., "pending", "completed", "failed"
-	PaymentTimestamp   time.Time `gorm:""`
+	Paid               bool      `gorm:"not null;default:false;"`
 	IsCancel           bool      `gorm:"not null;default:false;"`
 	CancellationReason string    `gorm:"type:varchar(64)"` // Reason for cancellation, if any
 	CancelledBy        string    `gorm:"type:varchar(64)"` // User or Worker

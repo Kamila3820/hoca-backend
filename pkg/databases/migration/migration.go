@@ -19,6 +19,7 @@ func main() {
 	postPlaceTypeMigration(tx)
 	postMigration(tx)
 	orderMigration(tx)
+	orderQRMigration(tx)
 	historyMigration(tx)
 	userRatingMigration(tx)
 	notificationMigration(tx)
@@ -53,6 +54,10 @@ func orderMigration(tx *gorm.DB) {
 	tx.Migrator().CreateTable(&entities.Order{})
 }
 
+func orderQRMigration(tx *gorm.DB) {
+	tx.Migrator().CreateTable(&entities.OrderQrpayment{})
+}
+
 func historyMigration(tx *gorm.DB) {
 	tx.Migrator().CreateTable(&entities.History{})
 }
@@ -62,5 +67,21 @@ func userRatingMigration(tx *gorm.DB) {
 }
 
 func notificationMigration(tx *gorm.DB) {
+	// enumCreateQuery := `
+	// CREATE TYPE notification_enum AS ENUM (
+	//     'confirmation',
+	//     'preparing',
+	//     'working',
+	//     'complete',
+	//     'user_cancel',
+	//     'worker_cancel',
+	//     'user_rating'
+	// );
+	// `
+
+	// if err := tx.Exec(enumCreateQuery).Error; err != nil {
+	// 	log.Printf("Error creating ENUM type: %v", err)
+	// }
+
 	tx.Migrator().CreateTable(&entities.Notification{})
 }
