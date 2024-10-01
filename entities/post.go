@@ -1,6 +1,8 @@
 package entities
 
 import (
+	"fmt"
+	"strconv"
 	"time"
 
 	_postModel "github.com/Kamila3820/hoca-backend/modules/post/model"
@@ -29,7 +31,7 @@ type Post struct {
 	UpdatedAt    time.Time     `gorm:"not null;autoUpdateTime"`
 	Category     *PostCategory `gorm:"foreignKey:CategoryID"`
 	PlaceTypes   []*PlaceType  `gorm:"many2many:post_place_types;"`
-	UserRatings  []UserRating  `gorm:"foreignKey:WorkerPostID"`
+	UserRatings  []*UserRating `gorm:"foreignKey:WorkerPostID"`
 }
 
 func (p *Post) ToPostModel() *_postModel.Post {
@@ -41,6 +43,34 @@ func (p *Post) ToPostModel() *_postModel.Post {
 			Description: pt.Description,
 		})
 	}
+
+	totalWorkScore := 0.0
+	totalSecurityScore := 0.0
+	count := len(p.UserRatings)
+
+	var userRatings []_postModel.UserRating
+	for _, ur := range p.UserRatings {
+		userRatings = append(userRatings, _postModel.UserRating{
+			ID:            ur.ID,
+			UserID:        ur.UserID,
+			Username:      ur.User.UserName,
+			Avatar:        ur.User.Avatar,
+			WorkScore:     ur.WorkScore,
+			SecurityScore: ur.SecurityScore,
+			Comment:       ur.Comment,
+		})
+
+		totalWorkScore += float64(ur.WorkScore)
+		totalSecurityScore += float64(ur.SecurityScore)
+	}
+
+	// Compute average total score
+	var totalScore float64
+	if count > 0 {
+		totalScore = (totalWorkScore + totalSecurityScore) / float64(2*count)
+	}
+
+	summaryTotalScore, _ := strconv.ParseFloat(fmt.Sprintf("%.1f", totalScore), 64)
 
 	return &_postModel.Post{
 		ID:           p.ID,
@@ -54,12 +84,13 @@ func (p *Post) ToPostModel() *_postModel.Post {
 		Location:     p.Location,
 		LocationLat:  p.LocationLat,
 		LocationLong: p.LocationLong,
-		TotalScore:   p.TotalScore,
+		TotalScore:   summaryTotalScore,
 		PhoneNumber:  p.PhoneNumber,
 		Gender:       p.Gender,
 		AmountFamily: p.AmountFamily,
 		ActiveStatus: p.ActiveStatus,
 		PlaceTypes:   placeTypes,
+		UserRatings:  userRatings,
 		CreatedAt:    p.CreatedAt,
 		UpdatedAt:    p.UpdatedAt,
 	}

@@ -25,7 +25,7 @@ func (r *postRepositoryImpl) FindPost() ([]*entities.Post, error) {
 	postList := make([]*entities.Post, 0)
 
 	// Preload PlaceTypes or other associations
-	if err := r.db.Connect().Preload("PlaceTypes").Find(&postList).Error; err != nil {
+	if err := r.db.Connect().Preload("PlaceTypes").Preload("UserRatings.User").Find(&postList).Error; err != nil {
 		r.logger.Errorf("Failed to find posts: %s", err.Error())
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func (r *postRepositoryImpl) FindPost() ([]*entities.Post, error) {
 func (r *postRepositoryImpl) FindPostByID(postID uint64) (*entities.Post, error) {
 	post := new(entities.Post)
 
-	if err := r.db.Connect().Preload("PlaceTypes").First(post, postID).Error; err != nil {
+	if err := r.db.Connect().Preload("PlaceTypes").Preload("UserRatings.User").First(post, postID).Error; err != nil {
 		r.logger.Errorf("Failed to find post by ID: %s", err.Error())
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (r *postRepositoryImpl) FindPostByID(postID uint64) (*entities.Post, error)
 func (r *postRepositoryImpl) FindPostByUserID(userID string) (*entities.Post, error) {
 	post := new(entities.Post)
 
-	if err := r.db.Connect().Where("owner_id = ?", userID).Preload("PlaceTypes").First(post).Error; err != nil {
+	if err := r.db.Connect().Where("owner_id = ?", userID).Preload("PlaceTypes").Preload("UserRatings.User").First(post).Error; err != nil {
 		r.logger.Errorf("Failed to find post by UserID: %s", err.Error())
 		return nil, err
 	}

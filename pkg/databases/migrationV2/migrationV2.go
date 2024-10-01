@@ -13,8 +13,8 @@ func main() {
 
 	tx := db.Connect().Begin()
 
-	// userAdding(tx)
-	// postCategoryAdding(tx)
+	userAdding(tx)
+	postCategoryAdding(tx)
 	placeTypeAdding(tx)
 	postsAdding(tx)
 	userRatingAdding(tx)
@@ -47,7 +47,7 @@ func postsAdding(tx *gorm.DB) {
 		},
 		{
 			ID:           55,
-			OwnerID:      "105118840060769110477",
+			OwnerID:      "205118840060769110477",
 			Name:         "3 Test Service",
 			Description:  "This is a test service.",
 			Avatar:       "", // Empty string
@@ -145,7 +145,7 @@ func userRatingAdding(tx *gorm.DB) {
 		},
 		{
 			ID:            31,
-			UserID:        "205118840060769110477",
+			UserID:        "105118840060769110477",
 			WorkerPostID:  "55",
 			WorkScore:     10,
 			SecurityScore: 10,

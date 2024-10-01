@@ -6,31 +6,42 @@ import (
 
 type (
 	Post struct {
-		ID           uint64      `json:"id"`
-		OwnerID      string      `json:"owner_id"`
-		Name         string      `json:"name"`
-		Description  string      `json:"description"`
-		Avatar       string      `json:"avatar"`
-		CategoryID   uint64      `json:"category_id"`
-		Location     string      `json:"location"`
-		LocationLat  string      `json:"latitude"`
-		LocationLong string      `json:"longitude"`
-		Price        float64     `json:"price"`
-		Distance     string      `json:"distance"`
-		PhoneNumber  string      `json:"phone_number"`
-		Gender       string      `json:"gender"`
-		AmountFamily string      `json:"amount_family"`
-		TotalScore   float64     `json:"total_score"`
-		ActiveStatus bool        `json:"active_status"`
-		PlaceTypes   []PlaceType `json:"place_types"`
-		CreatedAt    time.Time   `json:"created_at"`
-		UpdatedAt    time.Time   `json:"updated_at"`
+		ID           uint64       `json:"id"`
+		OwnerID      string       `json:"owner_id"`
+		Name         string       `json:"name"`
+		Description  string       `json:"description"`
+		Avatar       string       `json:"avatar"`
+		CategoryID   uint64       `json:"category_id"`
+		Location     string       `json:"location"`
+		LocationLat  string       `json:"latitude"`
+		LocationLong string       `json:"longitude"`
+		Price        float64      `json:"price"`
+		Distance     string       `json:"distance"`
+		PhoneNumber  string       `json:"phone_number"`
+		Gender       string       `json:"gender"`
+		AmountFamily string       `json:"amount_family"`
+		TotalScore   float64      `json:"total_score"`
+		ActiveStatus bool         `json:"active_status"`
+		PlaceTypes   []PlaceType  `json:"place_types"`
+		UserRatings  []UserRating `json:"user_ratings"`
+		CreatedAt    time.Time    `json:"created_at"`
+		UpdatedAt    time.Time    `json:"updated_at"`
 	}
 
 	PlaceType struct {
 		ID          uint64 `json:"id"`
 		Name        string `json:"name"`
 		Description string `json:"description"`
+	}
+
+	UserRating struct {
+		ID            uint64 `json:"id"`
+		UserID        string `json:"user_id"`
+		Username      string `json:"username"`
+		Avatar        string `json:"avatar"`
+		WorkScore     int    `json:"work_score"`
+		SecurityScore int    `json:"security_score"`
+		Comment       string `json:"comment"`
 	}
 
 	PostCreatingReq struct {
