@@ -93,7 +93,14 @@ func (s *postServiceImpl) GetPostByUserID(userID string) (*_postModel.Post, erro
 	return post.ToPostModel(), nil
 }
 
-func (s *postServiceImpl) CreatingPost(postCreatingReq *_postModel.PostCreatingReq) (*_postModel.Post, error) {
+func (s *postServiceImpl) CreatingPost(postCreatingReq *_postModel.PostCreatingReq, userID string) (*_postModel.Post, error) {
+	// Check if the user already has the post
+	existPost, _ := s.postRepository.FindPostByUserID(userID)
+
+	if existPost != nil {
+		return nil, errors.New("service: user alredy has the post exist")
+	}
+
 	postEntity := &entities.Post{
 		OwnerID:      postCreatingReq.OwnerID,
 		Name:         postCreatingReq.Name,

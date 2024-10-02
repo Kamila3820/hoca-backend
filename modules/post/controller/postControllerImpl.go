@@ -87,25 +87,20 @@ func (c *postControllerImpl) CreateWorkerPost(pctx echo.Context) error {
 			"error": "Failed to retrieve user ID from context",
 		})
 	}
-	fmt.Println("user_id = ", userIDStr)
-	fmt.Println("1")
 
 	postCreatingReq := new(_postModel.PostCreatingReq)
 
 	customEchoRequest := custom.NewCustomEchoRequest(pctx)
-	fmt.Println("2")
 
 	if err := customEchoRequest.Bind(postCreatingReq); err != nil {
 		return custom.Error(pctx, http.StatusBadRequest, err)
 	}
 	postCreatingReq.OwnerID = userIDStr
-	fmt.Println("3")
 
-	workerPost, err := c.postService.CreatingPost(postCreatingReq)
+	workerPost, err := c.postService.CreatingPost(postCreatingReq, userIDStr)
 	if err != nil {
 		return pctx.String(http.StatusInternalServerError, err.Error())
 	}
-	fmt.Println("4")
 
 	return pctx.JSON(http.StatusCreated, workerPost)
 }

@@ -176,6 +176,12 @@ func (r *postRepositoryImpl) EditingPost(postID uint64, postEditingReq *_postMod
 }
 
 func (r *postRepositoryImpl) DeletePost(postID uint64) error {
+	// Delete all related user ratings
+	if err := r.db.Connect().Where("worker_post_id = ?", postID).Delete(&entities.UserRating{}).Error; err != nil {
+		r.logger.Errorf("Failed to delete related user ratings: %s", err.Error())
+		return err
+	}
+
 	if err := r.db.Connect().Delete(&entities.Post{}, postID).Error; err != nil {
 		r.logger.Errorf("Delete worker post failed: %s", err.Error())
 		return err
