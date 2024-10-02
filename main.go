@@ -13,6 +13,9 @@ func main() {
 	db := databases.NewPostgresDatabase(conf.Database)
 	server := server.NewEchoServer(conf, db)
 
+	google := conf.Google.ApiKey
+
 	fmt.Println("Hello, Test!")
+	fmt.Println(google)
 	server.Start()
 }

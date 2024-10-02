@@ -46,3 +46,28 @@ func (o *Order) ToOrderModel() *_orderModel.Order {
 		UpdatedAt:          o.UpdatedAt,
 	}
 }
+
+func (o *Order) ToUserOrder() *_orderModel.UserOrder {
+	return &_orderModel.UserOrder{
+		ID:           o.ID,
+		UserID:       o.UserID,
+		WorkerPostID: o.WorkerPostID,
+		WorkerName:   o.Post.Name,
+		Price:        uint64(o.Price),
+		OrderStatus:  o.OrderStatus,
+	}
+}
+
+func (o *Order) ToWorkerOrder() *_orderModel.WorkerOrder {
+	return &_orderModel.WorkerOrder{
+		ID:            o.ID,
+		UserID:        o.UserID,
+		WorkerPostID:  o.WorkerPostID,
+		ContactName:   o.ContactName,
+		ContactPhone:  o.ContactPhone,
+		PaymentType:   o.PaymentType,
+		SpecificPlace: o.SpecificPlace,
+		Note:          o.Note,
+		OrderStatus:   o.OrderStatus,
+	}
+}

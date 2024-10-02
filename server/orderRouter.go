@@ -17,7 +17,12 @@ func (s *echoServer) initOrderRouter(m *authorizingMiddleware) {
 	router.GET("/contact", orderController.GetUserContact, m.UserAuthorizing)
 	router.PATCH("/update/:orderID", orderController.WorkerUpdateProgress, m.UserAuthorizing)
 	router.PATCH("/cancel/:orderID", orderController.CancelOrder, m.UserAuthorizing)
+
 	router.GET("/timer/:orderID", orderController.ConfirmationTimerOrder, m.UserAuthorizing)
+	router.GET("/user/:orderID", orderController.GetUserOrder, m.UserAuthorizing)
+	router.GET("/worker/:orderID", orderController.GetWorkerOrder, m.UserAuthorizing)
 
 	router.GET("/prepare/:orderID", orderController.GetPreparingOrder, m.UserAuthorizing)
+	router.GET("/payment/qr/:orderID", orderController.GetQRpayment, m.UserAuthorizing)
+	router.GET("/payment/inquiry", orderController.InquiryQRpayment, m.UserAuthorizing)
 }

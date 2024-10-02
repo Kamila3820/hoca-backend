@@ -8,6 +8,10 @@ type OrderController interface {
 	ConfirmationTimerOrder(pctx echo.Context) error
 	CancelOrder(pctx echo.Context) error
 	GetPreparingOrder(pctx echo.Context) error
+	GetQRpayment(pctx echo.Context) error
+	InquiryQRpayment(pctx echo.Context) error
 
+	GetUserOrder(pctx echo.Context) error
 	GetUserContact(pctx echo.Context) error
+	GetWorkerOrder(pctx echo.Context) error
 }

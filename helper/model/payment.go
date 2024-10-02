@@ -42,6 +42,14 @@ type ScbCreateQrDataResponse struct {
 	QrImage   string `json:"qrImage,omitempty"`
 }
 
+// Order payment response
+
+type CreateOrderQrResponse struct {
+	QrRawData     string `json:"qrRawData,omitempty"`
+	QrImage       string `json:"qrImage,omitempty"`
+	TransactionId string `json:"transactionId,omitempty"`
+}
+
 // Inquiry QR payment
 
 type PaymentInquiryRequest struct {

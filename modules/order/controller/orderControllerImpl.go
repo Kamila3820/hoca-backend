@@ -2,9 +2,11 @@ package controller
 
 import (
 	//_orderModel "github.com/Kamila3820/hoca-backend/modules/order/model"
+
 	"net/http"
 	"strconv"
 
+	_paymentModel "github.com/Kamila3820/hoca-backend/helper/model"
 	"github.com/Kamila3820/hoca-backend/modules/custom"
 	_orderModel "github.com/Kamila3820/hoca-backend/modules/order/model"
 	_orderService "github.com/Kamila3820/hoca-backend/modules/order/service"
@@ -185,4 +187,86 @@ func (c *orderControllerImpl) GetPreparingOrder(pctx echo.Context) error {
 	}
 
 	return pctx.JSON(http.StatusOK, response)
+}
+
+func (c *orderControllerImpl) GetQRpayment(pctx echo.Context) error {
+	userID := pctx.Get("userID")
+	userIDStr, ok := userID.(string)
+	if !ok {
+		return pctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "Failed to retrieve user ID from context",
+		})
+	}
+
+	orderID, err := c.getOrderID(pctx)
+	if err != nil {
+		return custom.Error(pctx, http.StatusBadRequest, err)
+	}
+
+	qrPayment, err := c.orderService.GetQRpayment(userIDStr, orderID)
+	if err != nil {
+		return custom.Error(pctx, http.StatusInternalServerError, err)
+	}
+
+	return pctx.JSON(http.StatusOK, qrPayment)
+}
+
+func (c *orderControllerImpl) InquiryQRpayment(pctx echo.Context) error {
+	paymentOrderReq := new(_paymentModel.PaymentInquiryRequest)
+
+	customEchoRequest := custom.NewCustomEchoRequest(pctx)
+	if err := customEchoRequest.Bind(paymentOrderReq); err != nil {
+		return custom.Error(pctx, http.StatusBadRequest, err)
+	}
+
+	paymentResponse, err := c.orderService.InquiryQRpayment(paymentOrderReq.TransactionId)
+	if err != nil {
+		return custom.Error(pctx, http.StatusInternalServerError, err)
+	}
+
+	return pctx.JSON(http.StatusOK, paymentResponse)
+}
+
+func (c *orderControllerImpl) GetUserOrder(pctx echo.Context) error {
+	userID := pctx.Get("userID")
+	userIDStr, ok := userID.(string)
+	if !ok {
+		return pctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "Failed to retrieve user ID from context",
+		})
+	}
+
+	orderID, err := c.getOrderID(pctx)
+	if err != nil {
+		return custom.Error(pctx, http.StatusBadRequest, err)
+	}
+
+	userOrder, err := c.orderService.GetUserOrder(orderID, userIDStr)
+	if err != nil {
+		return custom.Error(pctx, http.StatusInternalServerError, err)
+	}
+
+	return pctx.JSON(http.StatusOK, userOrder)
+}
+
+func (c *orderControllerImpl) GetWorkerOrder(pctx echo.Context) error {
+	userID := pctx.Get("userID")
+	userIDStr, ok := userID.(string)
+	if !ok {
+		return pctx.JSON(http.StatusInternalServerError, map[string]string{
+			"error": "Failed to retrieve user ID from context",
+		})
+	}
+
+	orderID, err := c.getOrderID(pctx)
+	if err != nil {
+		return custom.Error(pctx, http.StatusBadRequest, err)
+	}
+
+	workerOrder, err := c.orderService.GetWorkerOrder(orderID, userIDStr)
+	if err != nil {
+		return custom.Error(pctx, http.StatusInternalServerError, err)
+	}
+
+	return pctx.JSON(http.StatusOK, workerOrder)
 }

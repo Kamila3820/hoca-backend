@@ -9,10 +9,12 @@ import (
 	"github.com/Kamila3820/hoca-backend/config"
 	"github.com/Kamila3820/hoca-backend/entities"
 	"github.com/Kamila3820/hoca-backend/helper"
+	_paymentModel "github.com/Kamila3820/hoca-backend/helper/model"
 	_notiModel "github.com/Kamila3820/hoca-backend/modules/notification/model"
 	_orderModel "github.com/Kamila3820/hoca-backend/modules/order/model"
 	_orderRepository "github.com/Kamila3820/hoca-backend/modules/order/repository"
 	_userModel "github.com/Kamila3820/hoca-backend/modules/user/model"
+	"github.com/Kamila3820/hoca-backend/utils/text"
 )
 
 type orderServiceImpl struct {
@@ -314,7 +316,7 @@ func (s *orderServiceImpl) StartConfirmationTimer(orderID uint64) {
 
 		order, err := s.orderRepository.FindOrderByID(orderID)
 		if err != nil {
-			fmt.Println("Failed to find order", err)
+			fmt.Println("service: failed to find order", err)
 			return
 		}
 
@@ -380,7 +382,7 @@ func (s *orderServiceImpl) StartConfirmationTimer(orderID uint64) {
 func (s *orderServiceImpl) GetPreparingOrder(orderID uint64, customerLat, customerLong string) (*_orderModel.Order, *helper.DirectionsResponse, error) {
 	order, err := s.orderRepository.FindOrderByID(orderID)
 	if err != nil {
-		return nil, nil, errors.New("cannot find order by id")
+		return nil, nil, errors.New("service: cannot find order by id")
 	}
 
 	if order.OrderStatus != "preparing" {
@@ -389,7 +391,7 @@ func (s *orderServiceImpl) GetPreparingOrder(orderID uint64, customerLat, custom
 
 	workerPost, err := s.orderRepository.FindPostByID(order.WorkerPostID)
 	if err != nil {
-		return nil, nil, errors.New("order cannot be update")
+		return nil, nil, errors.New("service: order cannot be update")
 	}
 
 	workerLat := workerPost.LocationLat
@@ -407,8 +409,111 @@ func (s *orderServiceImpl) GetPreparingOrder(orderID uint64, customerLat, custom
 	client := helper.Client{APIKey: config.ConfigGetting().Google.ApiKey}
 	directionsResponse, err := client.Directions(directionsRequest)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get directions: %v", err)
+		return nil, nil, fmt.Errorf("service: failed to get directions: %v", err)
 	}
 
 	return order.ToOrderModel(), directionsResponse, nil
+}
+
+func (s *orderServiceImpl) GetQRpayment(userID string, orderID uint64) (*_paymentModel.CreateOrderQrResponse, error) {
+	order, err := s.orderRepository.FindOrderByID(orderID)
+	if err != nil {
+		return nil, errors.New("service: cannot find order by id")
+	}
+
+	if order.OrderStatus != "working" {
+		return nil, errors.New("service: cannot create QR payment in this stage")
+	}
+
+	if order.PaymentType != "qrcode" {
+		return nil, errors.New("service: cannot proceed QR payment type in this order")
+	}
+
+	transactionID := text.GenerateTransactionId(10)
+
+	paymentEntity := &entities.OrderQrpayment{
+		User:          nil,
+		UserId:        userID,
+		Order:         nil,
+		OrderID:       orderID,
+		Amount:        uint64(order.Price),
+		Paid:          false,
+		TransactionID: transactionID,
+	}
+
+	if err := s.orderRepository.CreatingQRpayment(paymentEntity); err != nil {
+		return nil, errors.New("service: cannot create order qr payment")
+	}
+
+	// Create qr code
+	qrData := helper.ScbCreateQrPayment(uint(order.Price), transactionID)
+
+	paymentResponse := &_paymentModel.CreateOrderQrResponse{
+		QrRawData:     qrData.QrRawData,
+		QrImage:       qrData.QrImage,
+		TransactionId: transactionID,
+	}
+
+	return paymentResponse, nil
+}
+
+func (s *orderServiceImpl) InquiryQRpayment(transactionID string) (*_paymentModel.PaymentInquiryResponse, error) {
+	inquiryData, err := helper.ScbInquiryPayment(transactionID)
+	if err != nil {
+		return nil, errors.New("service: unable to inquiry payment")
+	}
+
+	paymentStatusResponse := new(_paymentModel.PaymentInquiryResponse)
+
+	if inquiryData != nil && *inquiryData.PayeeName != "" && inquiryData.PayeeName != nil {
+		paymentStatusResponse.PaymentSuccess = true
+
+		paymentOrder, err := s.orderRepository.FindTransactionByID(transactionID)
+		if err != nil {
+			return nil, errors.New("service: cannot find payment order by ID")
+		}
+
+		// Update Paid in the order
+		paymentOrder.Paid = true
+		if err := s.orderRepository.UpdateTransactionOrder(paymentOrder); err != nil {
+			return nil, errors.New("service: cannot update payment order")
+		}
+
+	} else {
+		paymentStatusResponse.PaymentSuccess = false
+		paymentStatusResponse.Message = "Payment Not Found"
+	}
+
+	return paymentStatusResponse, nil
+}
+
+func (s *orderServiceImpl) GetUserOrder(orderID uint64, userID string) (*_orderModel.UserOrder, error) {
+	userOrder, err := s.orderRepository.FindOrderByID(orderID)
+	if err != nil {
+		return nil, errors.New("service: cannot query order by id")
+	}
+
+	if userID != userOrder.UserID {
+		return nil, errors.New("service: cannot proceed the user order")
+	}
+
+	return userOrder.ToUserOrder(), nil
+}
+
+func (s *orderServiceImpl) GetWorkerOrder(orderID uint64, userID string) (*_orderModel.WorkerOrder, error) {
+	order, err := s.orderRepository.FindOrderByID(orderID)
+	if err != nil {
+		return nil, errors.New("service: cannot query order by id")
+	}
+
+	workerPost, err := s.orderRepository.FindPostByID(order.WorkerPostID)
+	if err != nil {
+		return nil, errors.New("service: cannot query post by id")
+	}
+
+	if userID != workerPost.OwnerID {
+		return nil, errors.New("service: cannot proceed the worker order")
+	}
+
+	return order.ToWorkerOrder(), nil
 }
