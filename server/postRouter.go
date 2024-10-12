@@ -6,20 +6,20 @@ import (
 	_postService "github.com/Kamila3820/hoca-backend/modules/post/service"
 )
 
-func (s *echoServer) initPostRouter(m *authorizingMiddleware) {
-	router := s.app.Group("/v1/post")
+func (s *echoServer) initPostRouter() {
+	router := s.app.Group("/v1/post", Jwt())
 
 	postRepository := _postRepository.NewPostRepositoryImpl(s.db, s.app.Logger)
 	postService := _postService.NewPostServiceImpl(postRepository)
 	postController := _postController.NewPostControllerImpl(postService)
 
-	router.GET("/list", postController.FindPostByDistance, m.UserAuthorizing)
-	router.GET("/me", postController.GetOwnPost, m.UserAuthorizing)
-	router.GET("/:postID", postController.GetPostByPostID, m.UserAuthorizing)
-	router.POST("/create", postController.CreateWorkerPost, m.UserAuthorizing)
-	router.PATCH("/edit/:postID", postController.EditWorkerPost, m.UserAuthorizing)
-	router.DELETE("/delete/:postID", postController.DeleteWorkerPost, m.UserAuthorizing)
+	router.GET("/list", postController.FindPostByDistance)
+	router.GET("/me", postController.GetOwnPost)
+	router.GET("/:postID", postController.GetPostByPostID)
+	router.POST("/create", postController.CreateWorkerPost)
+	router.PATCH("/edit/:postID", postController.EditWorkerPost)
+	router.DELETE("/delete/:postID", postController.DeleteWorkerPost)
 
-	router.DELETE("/open/:postID", postController.ActivatePost, m.UserAuthorizing)
-	router.DELETE("/close/:postID", postController.UnActivatePost, m.UserAuthorizing)
+	router.DELETE("/open/:postID", postController.ActivatePost)
+	router.DELETE("/close/:postID", postController.UnActivatePost)
 }

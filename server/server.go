@@ -11,10 +11,13 @@ import (
 	"time"
 
 	"github.com/Kamila3820/hoca-backend/config"
+	"github.com/Kamila3820/hoca-backend/modules/account/misc"
 	_oauth2Controller "github.com/Kamila3820/hoca-backend/modules/oauth2/controller"
 	_oauth2Service "github.com/Kamila3820/hoca-backend/modules/oauth2/service"
 	_userRepository "github.com/Kamila3820/hoca-backend/modules/user/repository"
 	"github.com/Kamila3820/hoca-backend/pkg/databases"
+	"github.com/golang-jwt/jwt/v5"
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
@@ -51,25 +54,30 @@ func (s *echoServer) Start() {
 	bodyLimitMiddleware := getBodyLimitMiddleware(s.conf.Server.BodyLimit)
 	timeoutMiddleware := getTimeOutMiddleware(s.conf.Server.TimeOut)
 
-	s.app.Use(middleware.Recover())
+	// s.app.Use(middleware.Recover())
+	s.app.Use(middleware.RecoverWithConfig(middleware.RecoverConfig{
+		StackSize: 1 << 10, // 1 KB
+		LogLevel:  log.ERROR,
+	}))
 	s.app.Use(middleware.Logger())
 	s.app.Use(corsMiddleware)
 	s.app.Use(bodyLimitMiddleware)
 	s.app.Use(timeoutMiddleware)
 
-	authorizingMiddleware := s.getAuthorizingMiddleware()
+	// authorizingMiddleware := s.getAuthorizingMiddleware()
 
 	s.app.GET("/v1/health", s.healthCheck)
 	s.app.GET("/v1/panic", func(c echo.Context) error {
 		panic("Panic!")
 	})
 
-	s.initOAuth2Router()
-	s.initPostRouter(authorizingMiddleware)
-	s.initUserRatingRouter(authorizingMiddleware)
-	s.initOrderRouter(authorizingMiddleware)
-	s.initHistoryRouter(authorizingMiddleware)
-	s.initNotificationRouter(authorizingMiddleware)
+	// s.initOAuth2Router()
+	s.initAccountRouter()
+	s.initPostRouter()
+	s.initUserRatingRouter()
+	s.initOrderRouter()
+	s.initHistoryRouter()
+	s.initNotificationRouter()
 
 	quitCh := make(chan os.Signal, 1)
 	signal.Notify(quitCh, syscall.SIGINT, syscall.SIGTERM)
@@ -116,12 +124,33 @@ func getCORSMiddleware(allowOrigins []string) echo.MiddlewareFunc {
 		Skipper:      middleware.DefaultSkipper,
 		AllowOrigins: allowOrigins,
 		AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.PATCH, echo.DELETE},
-		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
 	})
 }
 
 func getBodyLimitMiddleware(bodyLimit string) echo.MiddlewareFunc {
 	return middleware.BodyLimit(bodyLimit)
+}
+
+func Jwt() echo.MiddlewareFunc {
+	config := echojwt.Config{
+		SigningKey:  []byte("babycomeandtakemylovenadruinit"),
+		TokenLookup: "header:x-auth-token",
+		NewClaimsFunc: func(c echo.Context) jwt.Claims {
+			return new(misc.UserClaim)
+		},
+		ErrorHandler: func(c echo.Context, err error) error {
+			fmt.Println("JWT Validation Error:", err)
+
+			return c.JSON(http.StatusUnauthorized, map[string]interface{}{
+				"success": false,
+				"message": "JWT validation failure",
+				"error":   err.Error(),
+			})
+		},
+	}
+
+	return echojwt.WithConfig(config)
 }
 
 func (s *echoServer) getAuthorizingMiddleware() *authorizingMiddleware {

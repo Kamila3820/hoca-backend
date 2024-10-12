@@ -6,12 +6,12 @@ import (
 	_notificationService "github.com/Kamila3820/hoca-backend/modules/notification/service"
 )
 
-func (s *echoServer) initNotificationRouter(m *authorizingMiddleware) {
-	router := s.app.Group("/v1/notification")
+func (s *echoServer) initNotificationRouter() {
+	router := s.app.Group("/v1/notification", Jwt())
 
 	notificationRepository := _notificationRepository.NewNotificationRepositoryImpl(s.db, s.app.Logger)
 	notificationService := _notificationService.NewNotificationServiceImpl(notificationRepository)
 	notificationController := _notificationController.NewNotificationControllerImpl(notificationService)
 
-	router.GET("/", notificationController.GetNotificationsByUser, m.UserAuthorizing)
+	router.GET("/", notificationController.GetNotificationsByUser)
 }

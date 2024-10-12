@@ -6,23 +6,23 @@ import (
 	_orderService "github.com/Kamila3820/hoca-backend/modules/order/service"
 )
 
-func (s *echoServer) initOrderRouter(m *authorizingMiddleware) {
-	router := s.app.Group("/v1/order")
+func (s *echoServer) initOrderRouter() {
+	router := s.app.Group("/v1/order", Jwt())
 
 	orderRepository := _orderRepository.NewOrderRepositoryImpl(s.db, s.app.Logger)
 	orderService := _orderService.NewOrderServiceImpl(orderRepository)
 	orderController := _orderController.NewOrderControllerImpl(orderService)
 
-	router.POST("/create/:postID", orderController.PlaceOrder, m.UserAuthorizing)
-	router.GET("/contact", orderController.GetUserContact, m.UserAuthorizing)
-	router.PATCH("/update/:orderID", orderController.WorkerUpdateProgress, m.UserAuthorizing)
-	router.PATCH("/cancel/:orderID", orderController.CancelOrder, m.UserAuthorizing)
+	router.POST("/create/:postID", orderController.PlaceOrder)
+	router.GET("/contact", orderController.GetUserContact)
+	router.PATCH("/update/:orderID", orderController.WorkerUpdateProgress)
+	router.PATCH("/cancel/:orderID", orderController.CancelOrder)
 
-	router.GET("/timer/:orderID", orderController.ConfirmationTimerOrder, m.UserAuthorizing)
-	router.GET("/user/:orderID", orderController.GetUserOrder, m.UserAuthorizing)
-	router.GET("/worker/:orderID", orderController.GetWorkerOrder, m.UserAuthorizing)
+	router.GET("/timer/:orderID", orderController.ConfirmationTimerOrder)
+	router.GET("/user/:orderID", orderController.GetUserOrder)
+	router.GET("/worker/:orderID", orderController.GetWorkerOrder)
 
-	router.GET("/prepare/:orderID", orderController.GetPreparingOrder, m.UserAuthorizing)
-	router.GET("/payment/qr/:orderID", orderController.GetQRpayment, m.UserAuthorizing)
-	router.GET("/payment/inquiry", orderController.InquiryQRpayment, m.UserAuthorizing)
+	router.GET("/prepare/:orderID", orderController.GetPreparingOrder)
+	router.GET("/payment/qr/:orderID", orderController.GetQRpayment)
+	router.GET("/payment/inquiry", orderController.InquiryQRpayment)
 }

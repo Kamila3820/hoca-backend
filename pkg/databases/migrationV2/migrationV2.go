@@ -29,7 +29,7 @@ func postsAdding(tx *gorm.DB) {
 	posts := []entities.Post{
 		{
 			ID:           44,
-			OwnerID:      "105118840060769110477",
+			OwnerID:      "93bc9842-2801-41de-814d-bbd7fb172a1b",
 			Name:         "2 Test Service",
 			Description:  "This is a test service.",
 			Avatar:       "", // Empty string
@@ -122,7 +122,7 @@ func userAdding(tx *gorm.DB) {
 			Email:        "attpinya@gmail.com",
 			Avatar:       "https://lh3.googleusercontent.com/a/ACg8ocLyvY_troho1V-6qhTv6gyWrBKoOUcZwI9VCd6EUYc7MpURVgMQ=s96-c",
 			Password:     "your_secure_password", // Add a placeholder or hash the password
-			PhoneNumber:  "0958505514",
+			PhoneNumber:  "0258505514",
 			IDCard:       "1234567890123", // Add a unique ID card value
 			VerifyStatus: false,
 			Latitude:     "",
@@ -142,14 +142,6 @@ func userRatingAdding(tx *gorm.DB) {
 			WorkScore:     3,
 			SecurityScore: 0,
 			Comment:       "Terrible work",
-		},
-		{
-			ID:            31,
-			UserID:        "105118840060769110477",
-			WorkerPostID:  "55",
-			WorkScore:     10,
-			SecurityScore: 10,
-			Comment:       "Excellent",
 		},
 	}
 

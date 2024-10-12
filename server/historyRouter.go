@@ -6,13 +6,13 @@ import (
 	_historyService "github.com/Kamila3820/hoca-backend/modules/history/service"
 )
 
-func (s *echoServer) initHistoryRouter(m *authorizingMiddleware) {
-	router := s.app.Group("/v1/history")
+func (s *echoServer) initHistoryRouter() {
+	router := s.app.Group("/v1/history", Jwt())
 
 	historyRepository := _historyRepository.NewHistoryRepositoryImpl(s.db, s.app.Logger)
 	historyService := _historyService.NewHistoryServiceImpl(historyRepository)
 	historyController := _historyController.NewHistoryControllerImpl(historyService)
 
-	router.GET("/list", historyController.GetHistoryByUserID, m.UserAuthorizing)
-	router.GET("/work", historyController.GetWorkingHistory, m.UserAuthorizing)
+	router.GET("/list", historyController.GetHistoryByUserID)
+	router.GET("/work", historyController.GetWorkingHistory)
 }
