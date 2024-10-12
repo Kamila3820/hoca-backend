@@ -7,6 +7,7 @@ import (
 	_postModel "github.com/Kamila3820/hoca-backend/modules/post/model"
 	"github.com/Kamila3820/hoca-backend/pkg/databases"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 type postRepositoryImpl struct {
@@ -36,7 +37,12 @@ func (r *postRepositoryImpl) FindPost() ([]*entities.Post, error) {
 func (r *postRepositoryImpl) FindPostByID(postID uint64) (*entities.Post, error) {
 	post := new(entities.Post)
 
-	if err := r.db.Connect().Preload("PlaceTypes").Preload("UserRatings.User").First(post, postID).Error; err != nil {
+	if err := r.db.Connect().
+		Preload("PlaceTypes").
+		Preload("UserRatings", func(db *gorm.DB) *gorm.DB {
+			return db.Order("created_at DESC")
+		}).Preload("UserRatings.User").
+		First(post, postID).Error; err != nil {
 		r.logger.Errorf("Failed to find post by ID: %s", err.Error())
 		return nil, err
 	}

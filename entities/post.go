@@ -58,6 +58,7 @@ func (p *Post) ToPostModel() *_postModel.Post {
 			WorkScore:     ur.WorkScore,
 			SecurityScore: ur.SecurityScore,
 			Comment:       ur.Comment,
+			CreatedAt:     ur.CreatedAt.Format("2006-01-02 15:04"),
 		})
 
 		totalWorkScore += float64(ur.WorkScore)

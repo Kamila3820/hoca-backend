@@ -42,6 +42,7 @@ type (
 		WorkScore     int    `json:"work_score"`
 		SecurityScore int    `json:"security_score"`
 		Comment       string `json:"comment"`
+		CreatedAt     string `json:"created_at"`
 	}
 
 	PostCreatingReq struct {

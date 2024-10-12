@@ -5,9 +5,11 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/Kamila3820/hoca-backend/modules/account/misc"
 	"github.com/Kamila3820/hoca-backend/modules/custom"
 	_postModel "github.com/Kamila3820/hoca-backend/modules/post/model"
 	_postService "github.com/Kamila3820/hoca-backend/modules/post/service"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
 
@@ -22,13 +24,9 @@ func NewPostControllerImpl(postService _postService.PostService) PostController 
 }
 
 func (c *postControllerImpl) FindPostByDistance(pctx echo.Context) error {
-	userID := pctx.Get("userID")
-	userIDStr, ok := userID.(string)
-	if !ok {
-		return pctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "Failed to retrieve user ID from context",
-		})
-	}
+	userID := pctx.Get("user").(*jwt.Token).Claims.(*misc.UserClaim)
+	fmt.Println(userID.ID)
+	fmt.Println("UserID")
 
 	userLat, err := strconv.ParseFloat(pctx.QueryParam("lat"), 64)
 	if err != nil {
@@ -40,7 +38,7 @@ func (c *postControllerImpl) FindPostByDistance(pctx echo.Context) error {
 		return pctx.JSON(http.StatusBadRequest, "Invalid longitude")
 	}
 
-	workerPost, err := c.postService.FindPostByDistance(userIDStr, userLat, userLong)
+	workerPost, err := c.postService.FindPostByDistance(userID.ID, userLat, userLong)
 	if err != nil {
 		return pctx.String(http.StatusInternalServerError, err.Error())
 	}
@@ -80,13 +78,7 @@ func (c *postControllerImpl) GetPostByPostID(pctx echo.Context) error {
 }
 
 func (c *postControllerImpl) CreateWorkerPost(pctx echo.Context) error {
-	userID := pctx.Get("userID")
-	userIDStr, ok := userID.(string)
-	if !ok {
-		return pctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "Failed to retrieve user ID from context",
-		})
-	}
+	userID := pctx.Get("user").(*jwt.Token).Claims.(*misc.UserClaim)
 
 	postCreatingReq := new(_postModel.PostCreatingReq)
 
@@ -95,9 +87,9 @@ func (c *postControllerImpl) CreateWorkerPost(pctx echo.Context) error {
 	if err := customEchoRequest.Bind(postCreatingReq); err != nil {
 		return custom.Error(pctx, http.StatusBadRequest, err)
 	}
-	postCreatingReq.OwnerID = userIDStr
+	postCreatingReq.OwnerID = userID.ID
 
-	workerPost, err := c.postService.CreatingPost(postCreatingReq, userIDStr)
+	workerPost, err := c.postService.CreatingPost(postCreatingReq, userID.ID)
 	if err != nil {
 		return pctx.String(http.StatusInternalServerError, err.Error())
 	}

@@ -7,9 +7,11 @@ import (
 	"strconv"
 
 	_paymentModel "github.com/Kamila3820/hoca-backend/helper/model"
+	"github.com/Kamila3820/hoca-backend/modules/account/misc"
 	"github.com/Kamila3820/hoca-backend/modules/custom"
 	_orderModel "github.com/Kamila3820/hoca-backend/modules/order/model"
 	_orderService "github.com/Kamila3820/hoca-backend/modules/order/service"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
 
@@ -24,13 +26,7 @@ func NewOrderControllerImpl(orderService _orderService.OrderService) OrderContro
 }
 
 func (c *orderControllerImpl) PlaceOrder(pctx echo.Context) error {
-	userID := pctx.Get("userID")
-	userIDStr, ok := userID.(string)
-	if !ok {
-		return pctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "Failed to retrieve user ID from context",
-		})
-	}
+	userID := pctx.Get("user").(*jwt.Token).Claims.(*misc.UserClaim)
 
 	postID, err := c.getPostID(pctx)
 	if err != nil {
@@ -44,7 +40,7 @@ func (c *orderControllerImpl) PlaceOrder(pctx echo.Context) error {
 		return custom.Error(pctx, http.StatusBadRequest, err)
 	}
 
-	orderCreatingReq.UserID = userIDStr
+	orderCreatingReq.UserID = userID.ID
 
 	newOrder, err := c.orderService.CreatingOrder(orderCreatingReq, postID)
 	if err != nil {
@@ -75,15 +71,9 @@ func (c *orderControllerImpl) getOrderID(pctx echo.Context) (uint64, error) {
 }
 
 func (c *orderControllerImpl) GetUserContact(pctx echo.Context) error {
-	userID := pctx.Get("userID")
-	userIDStr, ok := userID.(string)
-	if !ok {
-		return pctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "Failed to retrieve user ID from context",
-		})
-	}
+	userID := pctx.Get("user").(*jwt.Token).Claims.(*misc.UserClaim)
 
-	user, err := c.orderService.GetUserByID(userIDStr)
+	user, err := c.orderService.GetUserByID(userID.ID)
 	if err != nil {
 		return custom.Error(pctx, http.StatusNotFound, err)
 	}
@@ -98,13 +88,7 @@ func (c *orderControllerImpl) GetUserContact(pctx echo.Context) error {
 }
 
 func (c *orderControllerImpl) WorkerUpdateProgress(pctx echo.Context) error {
-	userID := pctx.Get("userID")
-	userIDStr, ok := userID.(string)
-	if !ok {
-		return pctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "Failed to retrieve user ID from context",
-		})
-	}
+	userID := pctx.Get("user").(*jwt.Token).Claims.(*misc.UserClaim)
 
 	orderID, err := c.getOrderID(pctx)
 	if err != nil {
@@ -120,7 +104,7 @@ func (c *orderControllerImpl) WorkerUpdateProgress(pctx echo.Context) error {
 		return custom.Error(pctx, http.StatusBadRequest, err)
 	}
 
-	order, err := c.orderService.UpdateOrderProgress(userIDStr, orderID, statusUpdate.Status)
+	order, err := c.orderService.UpdateOrderProgress(userID.ID, orderID, statusUpdate.Status)
 	if err != nil {
 		return custom.Error(pctx, http.StatusInternalServerError, err)
 	}
@@ -190,20 +174,14 @@ func (c *orderControllerImpl) GetPreparingOrder(pctx echo.Context) error {
 }
 
 func (c *orderControllerImpl) GetQRpayment(pctx echo.Context) error {
-	userID := pctx.Get("userID")
-	userIDStr, ok := userID.(string)
-	if !ok {
-		return pctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "Failed to retrieve user ID from context",
-		})
-	}
+	userID := pctx.Get("user").(*jwt.Token).Claims.(*misc.UserClaim)
 
 	orderID, err := c.getOrderID(pctx)
 	if err != nil {
 		return custom.Error(pctx, http.StatusBadRequest, err)
 	}
 
-	qrPayment, err := c.orderService.GetQRpayment(userIDStr, orderID)
+	qrPayment, err := c.orderService.GetQRpayment(userID.ID, orderID)
 	if err != nil {
 		return custom.Error(pctx, http.StatusInternalServerError, err)
 	}
@@ -228,20 +206,14 @@ func (c *orderControllerImpl) InquiryQRpayment(pctx echo.Context) error {
 }
 
 func (c *orderControllerImpl) GetUserOrder(pctx echo.Context) error {
-	userID := pctx.Get("userID")
-	userIDStr, ok := userID.(string)
-	if !ok {
-		return pctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "Failed to retrieve user ID from context",
-		})
-	}
+	userID := pctx.Get("user").(*jwt.Token).Claims.(*misc.UserClaim)
 
 	orderID, err := c.getOrderID(pctx)
 	if err != nil {
 		return custom.Error(pctx, http.StatusBadRequest, err)
 	}
 
-	userOrder, err := c.orderService.GetUserOrder(orderID, userIDStr)
+	userOrder, err := c.orderService.GetUserOrder(orderID, userID.ID)
 	if err != nil {
 		return custom.Error(pctx, http.StatusInternalServerError, err)
 	}
@@ -250,20 +222,14 @@ func (c *orderControllerImpl) GetUserOrder(pctx echo.Context) error {
 }
 
 func (c *orderControllerImpl) GetWorkerOrder(pctx echo.Context) error {
-	userID := pctx.Get("userID")
-	userIDStr, ok := userID.(string)
-	if !ok {
-		return pctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "Failed to retrieve user ID from context",
-		})
-	}
+	userID := pctx.Get("user").(*jwt.Token).Claims.(*misc.UserClaim)
 
 	orderID, err := c.getOrderID(pctx)
 	if err != nil {
 		return custom.Error(pctx, http.StatusBadRequest, err)
 	}
 
-	workerOrder, err := c.orderService.GetWorkerOrder(orderID, userIDStr)
+	workerOrder, err := c.orderService.GetWorkerOrder(orderID, userID.ID)
 	if err != nil {
 		return custom.Error(pctx, http.StatusInternalServerError, err)
 	}
