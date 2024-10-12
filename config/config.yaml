@@ -21,15 +21,16 @@ oauth2:
 
 google:
   apiKey: "AIzaSyCbMPxtX2B1eKnInkkMfg77DiLj_7P8ob4"
-  
+
+minio:
+  bucketEndpoint: "minio.bsthun.com"
+  bucketName: "cs-hoca"  
 
 scb:
   scbUrl: "https://api-sandbox.partners.scb/partners/sandbox"
   scbAppKey: "l720fad5e9e8fb43519658c675172dee17"
   scbAppSecret: "2c77d759feb54b0c85ee7534609e12d5"
   scbBillerId: "390623901403238"
-
-
 
 database:
   host: localhost
