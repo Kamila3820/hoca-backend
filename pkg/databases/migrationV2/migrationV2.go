@@ -13,11 +13,11 @@ func main() {
 
 	tx := db.Connect().Begin()
 
-	userAdding(tx)
+	// userAdding(tx)
 	postCategoryAdding(tx)
-	placeTypeAdding(tx)
-	postsAdding(tx)
-	userRatingAdding(tx)
+	// placeTypeAdding(tx)
+	// postsAdding(tx)
+	// userRatingAdding(tx)
 
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
@@ -27,34 +27,32 @@ func main() {
 
 func postsAdding(tx *gorm.DB) {
 	posts := []entities.Post{
-		{
-			ID:           44,
-			OwnerID:      "93bc9842-2801-41de-814d-bbd7fb172a1b",
-			Name:         "2 Test Service",
-			Description:  "This is a test service.",
-			Avatar:       "", // Empty string
-			CategoryID:   1,
-			Location:     "Test Location",
-			LocationLat:  "14.7563",
-			LocationLong: "100.5018",
-			Price:        100.00,
-			Distance:     "5.0",
-			PhoneNumber:  "0123456789",
-			Gender:       "Male",
-			AmountFamily: "4",
-			TotalScore:   9.5,
-			ActiveStatus: true,
-		},
+		// {
+		// 	ID:           44,
+		// 	OwnerID:      "33bc9842-2801-41de-814d-bbd7fb172a1b",
+		// 	Name:         "2 Test Service",
+		// 	Description:  "This is a test service.",
+		// 	Avatar:       "", // Empty string
+		// 	Location:     "Test Location",
+		// 	LocationLat:  "13.7563",
+		// 	LocationLong: "100.5018",
+		// 	Price:        100.00,
+		// 	Distance:     "5.0",
+		// 	PhoneNumber:  "0123456789",
+		// 	Gender:       "Male",
+		// 	AmountFamily: "4",
+		// 	TotalScore:   9.5,
+		// 	ActiveStatus: true,
+		// },
 		{
 			ID:           55,
 			OwnerID:      "205118840060769110477",
 			Name:         "3 Test Service",
 			Description:  "This is a test service.",
 			Avatar:       "", // Empty string
-			CategoryID:   1,
 			Location:     "Test Location",
-			LocationLat:  "14.7563",
-			LocationLong: "102.5018",
+			LocationLat:  "13.7563",
+			LocationLong: "100.4900",
 			Price:        100.00,
 			Distance:     "5.0",
 			PhoneNumber:  "0123456789",
@@ -69,24 +67,36 @@ func postsAdding(tx *gorm.DB) {
 }
 
 func postCategoryAdding(tx *gorm.DB) {
-	postCategory := []entities.PostCategory{
+	postCategory := []entities.Category{
+		// {
+		// 	ID:          1,
+		// 	GroupID:     1,
+		// 	Name:        "Deep cleaning",
+		// 	Description: "Cleaning",
+		// },
+		// {
+		// 	ID:          4,
+		// 	GroupID:     2,
+		// 	Name:        "Laundry",
+		// 	Description: "Clothes",
+		// },
+		// {
+		// 	ID:          9,
+		// 	GroupID:     4,
+		// 	Name:        "Pet sitting",
+		// 	Description: "Pets",
+		// },
 		{
-			ID:          1,
-			GroupID:     1,
-			Name:        "Deep cleaning",
-			Description: "Cleaning",
+			ID:          6,
+			GroupID:     3,
+			Name:        "Lawn Mowing",
+			Description: "Garden",
 		},
 		{
-			ID:          4,
-			GroupID:     2,
-			Name:        "Laundry",
-			Description: "Clothes",
-		},
-		{
-			ID:          9,
-			GroupID:     4,
-			Name:        "Pet sitting",
-			Description: "Pets",
+			ID:          8,
+			GroupID:     3,
+			Name:        "Yard cleanup",
+			Description: "Garden",
 		},
 	}
 

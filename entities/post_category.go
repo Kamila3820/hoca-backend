@@ -1,8 +1,6 @@
 package entities
 
 type PostCategory struct {
-	ID          uint64 `gorm:"primaryKey;autoIncrement"`
-	GroupID     uint64 `gorm:"not null"`
-	Name        string `gorm:"type:varchar(128);not null;unique"`
-	Description string `gorm:"type:varchar(128)"`
+	PostID     uint64 `gorm:"primaryKey;autoIncrement:false"` // Foreign key to Post
+	CategoryID uint64 `gorm:"primaryKey;autoIncrement:false"` // Foreign key to Category
 }

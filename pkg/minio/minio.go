@@ -3,11 +3,10 @@ package minio
 import (
 	"log"
 
+	mod "github.com/Kamila3820/hoca-backend/pkg"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
-
-var Minio *minio.Client
 
 func Init() {
 	endpoint := "minio.bsthun.com"
@@ -25,5 +24,5 @@ func Init() {
 		log.Fatalln(err)
 	}
 
-	Minio = minioClient
+	mod.Minio = minioClient
 }

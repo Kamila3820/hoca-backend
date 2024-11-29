@@ -33,6 +33,24 @@ func (s *orderServiceImpl) CreatingOrder(orderCreatingReq *_orderModel.OrderReq,
 		return nil, err
 	}
 
+	activeOrder, err := s.orderRepository.FindActiveOrder(orderCreatingReq.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	if activeOrder != nil {
+		return nil, errors.New("Can not proceed order, if you still have the running order")
+	}
+
+	workActiveOrder, err := s.orderRepository.FindWorkerOrder(orderCreatingReq.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	if workActiveOrder != nil {
+		return nil, errors.New("Your post still running the process, please finish it first")
+	}
+
 	orderEntity := &entities.Order{
 		UserID:        orderCreatingReq.UserID,
 		WorkerPostID:  postID,
@@ -41,7 +59,8 @@ func (s *orderServiceImpl) CreatingOrder(orderCreatingReq *_orderModel.OrderReq,
 		PaymentType:   orderCreatingReq.PaymentType,
 		SpecificPlace: orderCreatingReq.SpecificPlace,
 		Note:          orderCreatingReq.Note,
-		Price:         workerPost.Price,
+		Duration:      orderCreatingReq.Duration,
+		Price:         orderCreatingReq.Price,
 		OrderStatus:   "confirmation",
 	}
 
@@ -117,15 +136,15 @@ func (s *orderServiceImpl) UpdateOrderProgress(updaterID string, orderID uint64,
 		return nil, fmt.Errorf("order has been cancelled")
 	}
 
-	confirmDeadline := order.CreatedAt.Add(7 * time.Minute)
+	// confirmDeadline := order.CreatedAt.Add(4 * time.Minute)
 
-	if order.OrderStatus == "confirmation" && time.Now().After(confirmDeadline) {
-		order.OrderStatus = "cancelled"
-		order.IsCancel = true
-		order.CancellationReason = "worker did not confirm within the time"
-		order.CancelledBy = "system"
-		s.orderRepository.UpdateOrder(order)
-	}
+	// if order.OrderStatus == "confirmation" && time.Now().After(confirmDeadline) {
+	// 	order.OrderStatus = "cancelled"
+	// 	order.IsCancel = true
+	// 	order.CancellationReason = "worker did not confirm within the time"
+	// 	order.CancelledBy = "system"
+	// 	s.orderRepository.UpdateOrder(order)
+	// }
 
 	order.OrderStatus = newStatus
 	s.orderRepository.UpdateOrder(order)
@@ -180,10 +199,6 @@ func (s *orderServiceImpl) UpdateOrderProgress(updaterID string, orderID uint64,
 		// Update worker post
 		workerPost.IsReserved = false
 		s.orderRepository.UpdatePost(workerPost)
-
-		// Update order
-		order.Paid = true
-		s.orderRepository.UpdateOrder(order)
 
 		// Create history
 		history := &entities.History{
@@ -312,7 +327,7 @@ func (s *orderServiceImpl) CancelOrder(orderID uint64, reason string, cancelledB
 
 func (s *orderServiceImpl) StartConfirmationTimer(orderID uint64) {
 	go func() {
-		time.Sleep(7 * time.Minute)
+		time.Sleep(4 * time.Minute)
 
 		order, err := s.orderRepository.FindOrderByID(orderID)
 		if err != nil {
@@ -321,7 +336,9 @@ func (s *orderServiceImpl) StartConfirmationTimer(orderID uint64) {
 		}
 
 		if order.OrderStatus == "confirmation" {
-			// Auto cancel if the order is still in the "confirmation" after 7 minutes
+			triggerSystem0 := "afbf87a5-9114-42a9-bb58-82ab18809ecd"
+			triggerSystem1 := "bfbf87a5-9114-42a9-bb58-82ab18809ecd"
+			// Auto cancel if the order is still in the "confirmation" after 4 minutes
 			order.OrderStatus = "cancelled"
 			order.IsCancel = true
 			order.CancelledBy = "system"
@@ -338,17 +355,17 @@ func (s *orderServiceImpl) StartConfirmationTimer(orderID uint64) {
 			s.orderRepository.UpdatePost(workerPost)
 
 			// Create noti to customer
-			cancelTypeCustomer := _notiModel.NotificationPlaceOrder
+			cancelTypeSystem := _notiModel.NotificationSystemCancel
 			notification := &entities.Notification{
 				Trigger:          nil,
-				TriggerID:        nil,
+				TriggerID:        &triggerSystem0,
 				Triggee:          nil,
 				TriggeeID:        &order.UserID,
 				Order:            nil,
 				OrderID:          &order.ID,
 				UserRating:       nil,
 				UserRatingID:     nil,
-				NotificationType: &cancelTypeCustomer,
+				NotificationType: &cancelTypeSystem,
 				CreatedAt:        nil,
 			}
 
@@ -357,17 +374,16 @@ func (s *orderServiceImpl) StartConfirmationTimer(orderID uint64) {
 			}
 
 			// Create noti to worker
-			cancelTypeWorker := _notiModel.NotificationPlaceOrder
 			notificationWorker := &entities.Notification{
 				Trigger:          nil,
-				TriggerID:        nil,
+				TriggerID:        &triggerSystem1,
 				Triggee:          nil,
 				TriggeeID:        &workerPost.OwnerID,
 				Order:            nil,
 				OrderID:          &order.ID,
 				UserRating:       nil,
 				UserRatingID:     nil,
-				NotificationType: &cancelTypeWorker,
+				NotificationType: &cancelTypeSystem,
 				CreatedAt:        nil,
 			}
 
@@ -379,14 +395,19 @@ func (s *orderServiceImpl) StartConfirmationTimer(orderID uint64) {
 	}()
 }
 
-func (s *orderServiceImpl) GetPreparingOrder(orderID uint64, customerLat, customerLong string) (*_orderModel.Order, *helper.DirectionsResponse, error) {
+func (s *orderServiceImpl) GetPreparingOrder(orderID uint64) (*_orderModel.UserOrder, *helper.DirectionsResponse, error) {
 	order, err := s.orderRepository.FindOrderByID(orderID)
 	if err != nil {
 		return nil, nil, errors.New("service: cannot find order by id")
 	}
 
 	if order.OrderStatus != "preparing" {
-		return order.ToOrderModel(), nil, nil
+		return order.ToUserOrder(), nil, nil
+	}
+
+	user, err := s.orderRepository.FindUserByID(order.UserID)
+	if err != nil {
+		return nil, nil, errors.New("service: cannot find user by id")
 	}
 
 	workerPost, err := s.orderRepository.FindPostByID(order.WorkerPostID)
@@ -398,7 +419,7 @@ func (s *orderServiceImpl) GetPreparingOrder(orderID uint64, customerLat, custom
 	workerLong := workerPost.LocationLong
 
 	workerLocation := fmt.Sprintf("%s,%s", workerLat, workerLong)
-	customerLocation := fmt.Sprintf("%s,%s", customerLat, customerLong)
+	customerLocation := fmt.Sprintf("%s,%s", user.Latitude, user.Longtitude)
 
 	directionsRequest := &helper.DirectionsRequest{
 		Origin:      workerLocation,
@@ -412,7 +433,48 @@ func (s *orderServiceImpl) GetPreparingOrder(orderID uint64, customerLat, custom
 		return nil, nil, fmt.Errorf("service: failed to get directions: %v", err)
 	}
 
-	return order.ToOrderModel(), directionsResponse, nil
+	return order.ToUserOrder(), directionsResponse, nil
+}
+
+func (s *orderServiceImpl) GetWorkerPrepare(orderID uint64) (*_orderModel.WorkerOrder, *helper.DirectionsResponse, error) {
+	order, err := s.orderRepository.FindOrderByID(orderID)
+	if err != nil {
+		return nil, nil, errors.New("service: cannot find order by id")
+	}
+
+	if order.OrderStatus != "preparing" {
+		return order.ToWorkerOrder(), nil, nil
+	}
+
+	user, err := s.orderRepository.FindUserByID(order.UserID)
+	if err != nil {
+		return nil, nil, errors.New("service: cannot find user by id")
+	}
+
+	workerPost, err := s.orderRepository.FindPostByID(order.WorkerPostID)
+	if err != nil {
+		return nil, nil, errors.New("service: order cannot be update")
+	}
+
+	workerLat := workerPost.LocationLat
+	workerLong := workerPost.LocationLong
+
+	workerLocation := fmt.Sprintf("%s,%s", workerLat, workerLong)
+	customerLocation := fmt.Sprintf("%s,%s", user.Latitude, user.Longtitude)
+
+	directionsRequest := &helper.DirectionsRequest{
+		Origin:      workerLocation,
+		Destination: customerLocation,
+		Mode:        "driving",
+	}
+
+	client := helper.Client{APIKey: config.ConfigGetting().Google.ApiKey}
+	directionsResponse, err := client.Directions(directionsRequest)
+	if err != nil {
+		return nil, nil, fmt.Errorf("service: failed to get directions: %v", err)
+	}
+
+	return order.ToWorkerOrder(), directionsResponse, nil
 }
 
 func (s *orderServiceImpl) GetQRpayment(userID string, orderID uint64) (*_paymentModel.CreateOrderQrResponse, error) {
@@ -457,6 +519,96 @@ func (s *orderServiceImpl) GetQRpayment(userID string, orderID uint64) (*_paymen
 	return paymentResponse, nil
 }
 
+func (s *orderServiceImpl) GetWorkerFeePayment(postID uint64) (*_paymentModel.CreateWorkerFeeQrResponse, error) {
+	weekOrder, err := s.orderRepository.FindLastWeekOrderByPostID(postID)
+	if err != nil {
+		return nil, errors.New("service: cannot find last week order by postID")
+	}
+
+	if weekOrder == nil {
+		return nil, nil
+	}
+
+	postCheck, err := s.orderRepository.FindPostByID(postID)
+	if err != nil {
+		return nil, errors.New("service: cannot find post by postID")
+	}
+
+	if postCheck.ID != postID {
+		return nil, errors.New("service: invalid postID")
+	}
+
+	now := time.Now()
+	startFrom := now.AddDate(0, 0, -7)
+	endedAt := now.AddDate(0, 0, 5)
+	orderCount := len(weekOrder)
+	serviceFee := 70 * (len(weekOrder))
+	transactionID := text.GenerateTransactionId(10)
+
+	paymentEntity := &entities.WorkerFeepayment{
+		Post:          nil,
+		PostId:        postID,
+		OrderCount:    uint64(orderCount),
+		Amount:        uint64(serviceFee),
+		TransactionID: transactionID,
+		Paid:          false,
+		StartFrom:     startFrom.Format("2006-01-02 15:04"),
+		EndFrom:       now.Format("2006-01-02 15:04"),
+	}
+
+	if err := s.orderRepository.CreatingWorkerFeePayment(paymentEntity); err != nil {
+		return nil, errors.New("service: cannot create worker fee payment")
+	}
+
+	// Create qr code
+	qrData := helper.ScbCreateQrPayment(uint(serviceFee), transactionID)
+
+	fmt.Println(serviceFee)
+	fmt.Println(orderCount)
+	fmt.Println(weekOrder)
+	paymentResponse := &_paymentModel.CreateWorkerFeeQrResponse{
+		QrRawData:     qrData.QrRawData,
+		QrImage:       qrData.QrImage,
+		TransactionId: transactionID,
+		OrderCount:    orderCount,
+		Amount:        uint64(serviceFee),
+		StartFrom:     startFrom.Format("2006-01-02"),
+		EndFrom:       now.Format("2006-01-02"),
+		EndedAt:       endedAt.Format("2006-01-02"),
+	}
+
+	return paymentResponse, nil
+}
+
+func (s *orderServiceImpl) InquiryWorkerFeePayment(transactionID string) (*_paymentModel.PaymentInquiryResponse, error) {
+	inquiryData, err := helper.ScbInquiryPayment(transactionID)
+	if err != nil {
+		return nil, errors.New("service: unable to inquiry payment")
+	}
+
+	paymentStatusResponse := new(_paymentModel.PaymentInquiryResponse)
+
+	if inquiryData != nil && *inquiryData.PayeeName != "" && inquiryData.PayeeName != nil {
+		paymentStatusResponse.PaymentSuccess = true
+
+		paymentOrder, err := s.orderRepository.FindWorkerTransactionByID(transactionID)
+		if err != nil {
+			return nil, errors.New("service: cannot find payment order by ID")
+		}
+
+		// Update Paid in the order
+		paymentOrder.Paid = true
+		if err := s.orderRepository.UpdateTransactionFee(paymentOrder); err != nil {
+			return nil, errors.New("service: cannot update payment order")
+		}
+	} else {
+		paymentStatusResponse.PaymentSuccess = false
+		paymentStatusResponse.Message = "Payment Not Found"
+	}
+
+	return paymentStatusResponse, nil
+}
+
 func (s *orderServiceImpl) InquiryQRpayment(transactionID string) (*_paymentModel.PaymentInquiryResponse, error) {
 	inquiryData, err := helper.ScbInquiryPayment(transactionID)
 	if err != nil {
@@ -472,6 +624,14 @@ func (s *orderServiceImpl) InquiryQRpayment(transactionID string) (*_paymentMode
 		if err != nil {
 			return nil, errors.New("service: cannot find payment order by ID")
 		}
+
+		order, err := s.orderRepository.FindOrderByID(paymentOrder.OrderID)
+		if err != nil {
+			return nil, errors.New("service: cannot find order by ID")
+		}
+
+		order.Paid = true
+		s.orderRepository.UpdateOrder(order)
 
 		// Update Paid in the order
 		paymentOrder.Paid = true
@@ -513,6 +673,32 @@ func (s *orderServiceImpl) GetWorkerOrder(orderID uint64, userID string) (*_orde
 
 	if userID != workerPost.OwnerID {
 		return nil, errors.New("service: cannot proceed the worker order")
+	}
+
+	return order.ToWorkerOrder(), nil
+}
+
+func (s *orderServiceImpl) GetActiveOrder(userID string) (*_orderModel.UserOrder, error) {
+	order, err := s.orderRepository.FindActiveOrder(userID)
+	if err != nil {
+		return nil, errors.New("service: cannot query active worker order")
+	}
+
+	if order == nil {
+		return nil, nil
+	}
+
+	return order.ToUserOrder(), nil
+}
+
+func (s *orderServiceImpl) GetWorkerActiveOrder(userID string) (*_orderModel.WorkerOrder, error) {
+	order, err := s.orderRepository.FindWorkerOrder(userID)
+	if err != nil {
+		return nil, errors.New("service: cannot query active order")
+	}
+
+	if order == nil {
+		return nil, nil
 	}
 
 	return order.ToWorkerOrder(), nil

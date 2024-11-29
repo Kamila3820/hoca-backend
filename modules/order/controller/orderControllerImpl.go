@@ -3,6 +3,7 @@ package controller
 import (
 	//_orderModel "github.com/Kamila3820/hoca-backend/modules/order/model"
 
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -28,25 +29,36 @@ func NewOrderControllerImpl(orderService _orderService.OrderService) OrderContro
 func (c *orderControllerImpl) PlaceOrder(pctx echo.Context) error {
 	userID := pctx.Get("user").(*jwt.Token).Claims.(*misc.UserClaim)
 
+	fmt.Println("1")
 	postID, err := c.getPostID(pctx)
 	if err != nil {
 		return custom.Error(pctx, http.StatusBadRequest, err)
 	}
 
 	orderCreatingReq := new(_orderModel.OrderReq)
-
+	fmt.Println("2")
+	fmt.Println(orderCreatingReq.ContactName)
+	fmt.Println(orderCreatingReq.ContactPhone)
+	fmt.Println(orderCreatingReq.PaymentType)
+	fmt.Println(orderCreatingReq.SpecificPlace)
+	fmt.Println(orderCreatingReq.Note)
 	customEchoRequest := custom.NewCustomEchoRequest(pctx)
 	if err := customEchoRequest.Bind(orderCreatingReq); err != nil {
 		return custom.Error(pctx, http.StatusBadRequest, err)
 	}
-
+	fmt.Println("3")
+	fmt.Println(orderCreatingReq.ContactName)
+	fmt.Println(orderCreatingReq.ContactPhone)
+	fmt.Println(orderCreatingReq.PaymentType)
+	fmt.Println(orderCreatingReq.SpecificPlace)
+	fmt.Println(orderCreatingReq.Note)
 	orderCreatingReq.UserID = userID.ID
 
 	newOrder, err := c.orderService.CreatingOrder(orderCreatingReq, postID)
 	if err != nil {
 		return custom.Error(pctx, http.StatusInternalServerError, err)
 	}
-
+	fmt.Println("4")
 	return pctx.JSON(http.StatusCreated, newOrder)
 }
 
@@ -154,20 +166,56 @@ func (c *orderControllerImpl) GetPreparingOrder(pctx echo.Context) error {
 		return custom.Error(pctx, http.StatusBadRequest, err)
 	}
 
-	customerLat := pctx.QueryParam("lat")
-	customerLong := pctx.QueryParam("long")
-
-	order, distance, err := c.orderService.GetPreparingOrder(orderID, customerLat, customerLong)
+	order, distance, err := c.orderService.GetPreparingOrder(orderID)
 	if err != nil {
 		return custom.Error(pctx, http.StatusInternalServerError, err)
 	}
 
 	response := map[string]interface{}{
-		"order_status": order.OrderStatus,
+		"worker_name":   order.WorkerName,
+		"worker_phone":  order.WorkerPhone,
+		"worker_avatar": order.WorkerAvatar,
+		"payment_type":  order.PaymentType,
+		"price":         order.Price,
+		"order_status":  order.OrderStatus,
 	}
 
 	if distance != nil {
-		response["distance"] = distance
+		response["distance"] = distance.Routes
+
+	}
+
+	return pctx.JSON(http.StatusOK, response)
+}
+
+func (c *orderControllerImpl) GetWorkerPrepare(pctx echo.Context) error {
+	orderID, err := c.getOrderID(pctx)
+	if err != nil {
+		return custom.Error(pctx, http.StatusBadRequest, err)
+	}
+
+	order, distance, err := c.orderService.GetWorkerPrepare(orderID)
+	if err != nil {
+		return custom.Error(pctx, http.StatusInternalServerError, err)
+	}
+
+	response := map[string]interface{}{
+		"contact_name":   order.ContactName,
+		"contact_phone":  order.ContactPhone,
+		"user_avatar":    order.UserAvatar,
+		"payment_type":   order.PaymentType,
+		"location":       order.Location,
+		"specific_place": order.SpecificPlace,
+		"note":           order.Note,
+		"duration":       order.Duration,
+		"price":          order.Price,
+		"created_at":     order.CreatedAt,
+		"order_status":   order.OrderStatus,
+	}
+
+	if distance != nil {
+		response["distance"] = distance.Routes
+
 	}
 
 	return pctx.JSON(http.StatusOK, response)
@@ -186,7 +234,41 @@ func (c *orderControllerImpl) GetQRpayment(pctx echo.Context) error {
 		return custom.Error(pctx, http.StatusInternalServerError, err)
 	}
 
-	return pctx.JSON(http.StatusOK, qrPayment)
+	return pctx.JSON(http.StatusCreated, qrPayment)
+}
+
+func (c *orderControllerImpl) GetWorkerFeePayment(pctx echo.Context) error {
+	postID, err := c.getPostID(pctx)
+	if err != nil {
+		return custom.Error(pctx, http.StatusBadRequest, err)
+	}
+
+	qrPayment, err := c.orderService.GetWorkerFeePayment(postID)
+	if err != nil {
+		return custom.Error(pctx, http.StatusInternalServerError, err)
+	}
+
+	if qrPayment == nil {
+		return pctx.JSON(http.StatusCreated, nil)
+	}
+
+	return pctx.JSON(http.StatusCreated, qrPayment)
+}
+
+func (c *orderControllerImpl) InquiryFeePayment(pctx echo.Context) error {
+	paymentOrderReq := new(_paymentModel.PaymentInquiryRequest)
+
+	customEchoRequest := custom.NewCustomEchoRequest(pctx)
+	if err := customEchoRequest.Bind(paymentOrderReq); err != nil {
+		return custom.Error(pctx, http.StatusBadRequest, err)
+	}
+
+	paymentResponse, err := c.orderService.InquiryWorkerFeePayment(paymentOrderReq.TransactionId)
+	if err != nil {
+		return custom.Error(pctx, http.StatusInternalServerError, err)
+	}
+
+	return pctx.JSON(http.StatusOK, paymentResponse)
 }
 
 func (c *orderControllerImpl) InquiryQRpayment(pctx echo.Context) error {
@@ -235,4 +317,35 @@ func (c *orderControllerImpl) GetWorkerOrder(pctx echo.Context) error {
 	}
 
 	return pctx.JSON(http.StatusOK, workerOrder)
+}
+
+func (c *orderControllerImpl) GetActiveOrder(pctx echo.Context) error {
+	userID := pctx.Get("user").(*jwt.Token).Claims.(*misc.UserClaim)
+
+	userOrder, err := c.orderService.GetActiveOrder(userID.ID)
+	if err != nil {
+		return custom.Error(pctx, http.StatusInternalServerError, err)
+	}
+
+	if userOrder == nil {
+		return pctx.JSON(http.StatusOK, nil)
+	}
+
+	return pctx.JSON(http.StatusOK, userOrder)
+}
+
+func (c *orderControllerImpl) GetActiveWorkerOrder(pctx echo.Context) error {
+	userID := pctx.Get("user").(*jwt.Token).Claims.(*misc.UserClaim)
+
+	workerOrder, err := c.orderService.GetWorkerActiveOrder(userID.ID)
+	if err != nil {
+		return custom.Error(pctx, http.StatusInternalServerError, err)
+	}
+
+	if workerOrder == nil {
+		return pctx.JSON(http.StatusOK, nil)
+	}
+
+	return pctx.JSON(http.StatusOK, workerOrder)
+
 }

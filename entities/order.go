@@ -15,6 +15,7 @@ type Order struct {
 	PaymentType        string    `gorm:"type:varchar(64);not null"`
 	SpecificPlace      string    `gorm:"type:varchar(64)"`
 	Note               string    `gorm:"type:varchar(64)"`
+	Duration           string    `gorm:"type:varchar(128);not null"`
 	OrderStatus        string    `gorm:"type:varchar(64);not null"`
 	Price              float64   `gorm:"not null"`
 	Paid               bool      `gorm:"not null;default:false;"`
@@ -37,8 +38,10 @@ func (o *Order) ToOrderModel() *_orderModel.Order {
 		PaymentType:        o.PaymentType,
 		SpecificPlace:      o.SpecificPlace,
 		Note:               o.Note,
+		Duration:           o.Duration,
 		OrderStatus:        o.OrderStatus,
 		Price:              o.Price,
+		Paid:               o.Paid,
 		IsCancel:           o.IsCancel,
 		CancellationReason: o.CancellationReason,
 		CancelledBy:        o.CancelledBy,
@@ -53,7 +56,11 @@ func (o *Order) ToUserOrder() *_orderModel.UserOrder {
 		UserID:       o.UserID,
 		WorkerPostID: o.WorkerPostID,
 		WorkerName:   o.Post.Name,
-		Price:        uint64(o.Price),
+		WorkerPhone:  o.Post.PhoneNumber,
+		WorkerAvatar: o.Post.Avatar,
+		Price:        o.Price,
+		Paid:         o.Paid,
+		PaymentType:  o.PaymentType,
 		OrderStatus:  o.OrderStatus,
 	}
 }
@@ -65,9 +72,16 @@ func (o *Order) ToWorkerOrder() *_orderModel.WorkerOrder {
 		WorkerPostID:  o.WorkerPostID,
 		ContactName:   o.ContactName,
 		ContactPhone:  o.ContactPhone,
+		UserAvatar:    o.User.Avatar,
 		PaymentType:   o.PaymentType,
 		SpecificPlace: o.SpecificPlace,
+		Location:      o.User.Location,
 		Note:          o.Note,
+		Duration:      o.Duration,
+		Price:         o.Price,
+		Paid:          o.Paid,
 		OrderStatus:   o.OrderStatus,
+		CreatedAt:     o.CreatedAt.Format("2006-01-02 15:04"),
+		EndedAt:       o.CreatedAt.Add(4 * time.Minute).Format("2006-01-02 15:04"),
 	}
 }

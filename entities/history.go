@@ -29,7 +29,7 @@ func (h *History) ToHistoryModel() *_historyModel.History {
 		CancellationReason: h.CancellationReason,
 		CancelledBy:        h.CancelledBy,
 		IsRated:            h.IsRated,
-		CreatedAt:          h.CreatedAt,
+		CreatedAt:          h.CreatedAt.Format("2006-01-02 15:04"),
 	}
 }
 
@@ -44,6 +44,6 @@ func (h *History) ToWorkingHistoryModel() *_historyModel.WorkingHistory {
 		CancellationReason: h.CancellationReason,
 		CancelledBy:        h.CancelledBy,
 		IsRated:            h.IsRated,
-		CreatedAt:          h.CreatedAt,
+		CreatedAt:          h.CreatedAt.Format("2006-01-02 15:04"),
 	}
 }

@@ -22,4 +22,13 @@ type (
 		SecurityScore int    `json:"security_score" validate:"required"` // Rating value, 1-10
 		Comment       string `json:"comment" validate:"omitempty"`
 	}
+
+	RatingMetricsResponse struct {
+		TotalScore       float64 `json:"total_score"`
+		AvgWorkScore     float64 `json:"avg_work_score"`
+		AvgSecurityScore float64 `json:"avg_security_score"`
+		MaxCombinedScore float64 `json:"max_score"`
+		MinCombinedScore float64 `json:"min_score"`
+		TotalRatings     int     `json:"total_rating"`
+	}
 )

@@ -14,6 +14,7 @@ type (
 		Server   *Server   `mapstructure:"server" validate:"required"`
 		OAuth2   *OAuth2   `mapstructure:"oauth2" validate:"required"`
 		Google   *Google   `mapstructure:"google" validate:"required"`
+		Minio    *Minio    `mapstructure:"minio" validate:"required"`
 		Scb      *Scb      `mapstructure:"scb" validate:"required"`
 		Database *Database `mapstructure:"database" validate:"required"`
 	}
@@ -37,6 +38,11 @@ type (
 
 	Google struct {
 		ApiKey string `mapstructure:"apiKey" validate:"required"`
+	}
+
+	Minio struct {
+		BucketEndpoint string `mapstructure:"bucketEndpoint" validate:"required"`
+		BucketName     string `mapstructure:"bucketName" validate:"required"`
 	}
 
 	Scb struct {

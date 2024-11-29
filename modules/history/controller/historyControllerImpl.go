@@ -3,8 +3,10 @@ package controller
 import (
 	"net/http"
 
+	"github.com/Kamila3820/hoca-backend/modules/account/misc"
 	"github.com/Kamila3820/hoca-backend/modules/custom"
 	_historyService "github.com/Kamila3820/hoca-backend/modules/history/service"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
 
@@ -36,15 +38,9 @@ func (c *historyControllerImpl) GetOrderHistoryByUserID(pctx echo.Context) error
 }
 
 func (c *historyControllerImpl) GetHistoryByUserID(pctx echo.Context) error {
-	userID := pctx.Get("userID")
-	userIDStr, ok := userID.(string)
-	if !ok {
-		return pctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "Failed to retrieve user ID from context",
-		})
-	}
+	userID := pctx.Get("user").(*jwt.Token).Claims.(*misc.UserClaim)
 
-	history, err := c.historyService.GetHistory(userIDStr)
+	history, err := c.historyService.GetHistory(userID.ID)
 	if err != nil {
 		return custom.Error(pctx, http.StatusInternalServerError, err)
 	}
@@ -53,15 +49,9 @@ func (c *historyControllerImpl) GetHistoryByUserID(pctx echo.Context) error {
 }
 
 func (c *historyControllerImpl) GetWorkingHistory(pctx echo.Context) error {
-	userID := pctx.Get("userID")
-	userIDStr, ok := userID.(string)
-	if !ok {
-		return pctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "Failed to retrieve user ID from context",
-		})
-	}
+	userID := pctx.Get("user").(*jwt.Token).Claims.(*misc.UserClaim)
 
-	history, err := c.historyService.GetWorkingHistory(userIDStr)
+	history, err := c.historyService.GetWorkingHistory(userID.ID)
 	if err != nil {
 		return custom.Error(pctx, http.StatusInternalServerError, err)
 	}

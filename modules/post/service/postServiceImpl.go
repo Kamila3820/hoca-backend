@@ -27,17 +27,27 @@ func (s *postServiceImpl) FindPostByDistance(userID string, userLat, userLong fl
 		return nil, err
 	}
 
+	const feePerKm = 3.0 // the rate per kilometer for distance fee
+
 	distancePost := make([]*_postModel.Post, 0)
 	for _, post := range posts {
 		postLat := parseCoordinate(post.LocationLat)
 		postLong := parseCoordinate(post.LocationLong)
 		distance := calculateDistance(userLat, userLong, postLat, postLong)
 
+		var distanceFee int
+		if distance > 4.0 {
+			distanceFee = int(feePerKm * distance) // Convert to integer for whole number
+		} else {
+			distanceFee = 0
+		}
+
 		distanceStr := fmt.Sprintf("%.1f", distance)
 		newDistance := parseCoordinate(distanceStr)
 
-		if newDistance <= 5.0 && post.ActiveStatus == true && post.OwnerID != userID {
+		if newDistance <= 15.0 && post.ActiveStatus == true && post.OwnerID != userID && post.IsReserved == false {
 			post.Distance = distanceStr
+			post.DistanceFee = fmt.Sprintf("%d", distanceFee)
 			distancePost = append(distancePost, post.ToPostModel())
 		}
 	}
@@ -89,6 +99,9 @@ func (s *postServiceImpl) GetPostByUserID(userID string) (*_postModel.Post, erro
 	if err != nil {
 		return nil, errors.New("service: failed to get post by user_id")
 	}
+	if post == nil {
+		return nil, nil
+	}
 
 	return post.ToPostModel(), nil
 }
@@ -102,19 +115,29 @@ func (s *postServiceImpl) CreatingPost(postCreatingReq *_postModel.PostCreatingR
 	}
 
 	postEntity := &entities.Post{
-		OwnerID:      postCreatingReq.OwnerID,
-		Name:         postCreatingReq.Name,
-		Description:  postCreatingReq.Description,
-		Avatar:       postCreatingReq.Avatar,
-		Gender:       postCreatingReq.Gender,
-		PhoneNumber:  postCreatingReq.PhoneNumber,
-		Price:        postCreatingReq.Price,
-		CategoryID:   postCreatingReq.CategoryID,
-		Location:     postCreatingReq.Location,
-		LocationLat:  postCreatingReq.LocationLat,
-		LocationLong: postCreatingReq.LocationLong,
-		AmountFamily: postCreatingReq.AmountFamily,
+		OwnerID:        postCreatingReq.OwnerID,
+		Name:           postCreatingReq.Name,
+		Description:    postCreatingReq.Description,
+		Avatar:         postCreatingReq.Avatar,
+		Gender:         postCreatingReq.Gender,
+		PhoneNumber:    postCreatingReq.PhoneNumber,
+		PromptPay:      postCreatingReq.PromptPay,
+		Price:          postCreatingReq.Price,
+		Location:       postCreatingReq.Location,
+		LocationLat:    postCreatingReq.LocationLat,
+		LocationLong:   postCreatingReq.LocationLong,
+		AmountFamily:   postCreatingReq.AmountFamily,
+		Duration:       postCreatingReq.Duration,
+		AvailableStart: postCreatingReq.AvailableStart,
+		AvailableEnd:   postCreatingReq.AvailableEnd,
 	}
+
+	categories, err := s.postRepository.GetCategoriesByIds(postCreatingReq.CategoryIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	postEntity.Categories = categories
 
 	placeTypes, err := s.postRepository.GetPlaceTypesByIds(postCreatingReq.PlaceTypeIDs)
 	if err != nil {

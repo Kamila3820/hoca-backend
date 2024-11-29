@@ -15,9 +15,15 @@ type OrderService interface {
 
 	GetUserOrder(orderID uint64, userID string) (*_orderModel.UserOrder, error)
 	GetWorkerOrder(orderID uint64, userID string) (*_orderModel.WorkerOrder, error)
-	GetPreparingOrder(orderID uint64, customerLat, customerLong string) (*_orderModel.Order, *helper.DirectionsResponse, error)
+	GetActiveOrder(userID string) (*_orderModel.UserOrder, error)
+	GetWorkerActiveOrder(userID string) (*_orderModel.WorkerOrder, error)
+	GetPreparingOrder(orderID uint64) (*_orderModel.UserOrder, *helper.DirectionsResponse, error)
+	GetWorkerPrepare(orderID uint64) (*_orderModel.WorkerOrder, *helper.DirectionsResponse, error)
 	GetQRpayment(userID string, orderID uint64) (*_paymentModel.CreateOrderQrResponse, error)
 	InquiryQRpayment(transactionID string) (*_paymentModel.PaymentInquiryResponse, error)
 
 	GetUserByID(userID string) (*_userModel.User, error)
+
+	GetWorkerFeePayment(postID uint64) (*_paymentModel.CreateWorkerFeeQrResponse, error)
+	InquiryWorkerFeePayment(transactionID string) (*_paymentModel.PaymentInquiryResponse, error)
 }

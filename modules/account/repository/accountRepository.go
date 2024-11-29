@@ -1,6 +1,8 @@
 package repository
 
-import "github.com/Kamila3820/hoca-backend/entities"
+import (
+	"github.com/Kamila3820/hoca-backend/entities"
+)
 
 type AccountRepository interface {
 	CheckDuplicateEmail(email string) error

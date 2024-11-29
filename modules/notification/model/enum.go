@@ -15,6 +15,7 @@ const (
 	NotificationUserCancel   NotificationEnum = "user_cancel"
 	NotificationWorkerCancel NotificationEnum = "worker_cancel"
 	NotificationRating       NotificationEnum = "user_rating"
+	NotificationSystemCancel NotificationEnum = "system_cancel"
 )
 
 func (n *NotificationEnum) UnmarshalJSON(data []byte) error {

@@ -3,8 +3,10 @@ package controller
 import (
 	"net/http"
 
+	"github.com/Kamila3820/hoca-backend/modules/account/misc"
 	"github.com/Kamila3820/hoca-backend/modules/custom"
 	_notificationService "github.com/Kamila3820/hoca-backend/modules/notification/service"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
 
@@ -19,15 +21,9 @@ func NewNotificationControllerImpl(notificationService _notificationService.Noti
 }
 
 func (c *notificationControllerImpl) GetNotificationsByUser(pctx echo.Context) error {
-	userID := pctx.Get("userID")
-	userIDStr, ok := userID.(string)
-	if !ok {
-		return pctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "Failed to retrieve user ID from context",
-		})
-	}
+	userID := pctx.Get("user").(*jwt.Token).Claims.(*misc.UserClaim)
 
-	notifications, err := c.notificationService.GetNotificationsByUser(userIDStr)
+	notifications, err := c.notificationService.GetNotificationsByUser(userID.ID)
 	if err != nil {
 		return custom.Error(pctx, http.StatusInternalServerError, err)
 	}

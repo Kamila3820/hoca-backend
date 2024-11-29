@@ -1,13 +1,14 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
+	"github.com/Kamila3820/hoca-backend/modules/account/misc"
 	"github.com/Kamila3820/hoca-backend/modules/custom"
 	_userRatingModel "github.com/Kamila3820/hoca-backend/modules/user_rating/model"
 	_userRatingService "github.com/Kamila3820/hoca-backend/modules/user_rating/service"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
 
@@ -55,33 +56,37 @@ func (c *userRatingControllerImpl) ListRatingByPostID(pctx echo.Context) error {
 }
 
 func (c *userRatingControllerImpl) RatingWorker(pctx echo.Context) error {
-	userID := pctx.Get("userID")
-	userIDStr, ok := userID.(string)
-	if !ok {
-		return pctx.JSON(http.StatusInternalServerError, map[string]string{
-			"error": "Failed to retrieve user ID from context",
-		})
-	}
+	userID := pctx.Get("user").(*jwt.Token).Claims.(*misc.UserClaim)
 
 	historyID, err := c.getHistoryID(pctx)
 	if err != nil {
 		return custom.Error(pctx, http.StatusBadRequest, err)
 	}
-
 	userRatingCreateReq := new(_userRatingModel.UserRatingCreateReq)
 
 	customEchoRequest := custom.NewCustomEchoRequest(pctx)
-
 	if err := customEchoRequest.Bind(userRatingCreateReq); err != nil {
 		return custom.Error(pctx, http.StatusBadRequest, err)
 	}
-	fmt.Println("2")
 
-	userRating, err := c.userRatingService.CreateRating(userIDStr, historyID, userRatingCreateReq)
+	userRating, err := c.userRatingService.CreateRating(userID.ID, historyID, userRatingCreateReq)
 	if err != nil {
 		return custom.Error(pctx, http.StatusInternalServerError, err)
 	}
-	fmt.Println("3")
 
 	return pctx.JSON(http.StatusCreated, userRating)
+}
+
+func (c *userRatingControllerImpl) GetRatingMetrics(pctx echo.Context) error {
+	postID, err := c.getPostID(pctx)
+	if err != nil {
+		return custom.Error(pctx, http.StatusBadRequest, err)
+	}
+
+	metrics, err := c.userRatingService.GetRatingMetrics(postID)
+	if err != nil {
+		return custom.Error(pctx, http.StatusInternalServerError, err)
+	}
+
+	return pctx.JSON(http.StatusOK, metrics)
 }

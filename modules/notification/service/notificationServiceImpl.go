@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 
 	_notiModel "github.com/Kamila3820/hoca-backend/modules/notification/model"
 	_notificationRepository "github.com/Kamila3820/hoca-backend/modules/notification/repository"
@@ -25,6 +26,7 @@ func (s *notificationServiceImpl) GetNotificationsByUser(userID string) ([]*_not
 
 	mappedNotifications := make([]*_notiModel.NotificationResponse, 0)
 	for _, notification := range notifications {
+		fmt.Println(*notification.Id)
 		if notification.TriggerID == &userID {
 			continue
 		}

@@ -13,16 +13,18 @@ func main() {
 
 	tx := db.Connect().Begin()
 
-	userMigration(tx)
-	postCategoryMigration(tx)
-	placeTypeMigration(tx)
-	postPlaceTypeMigration(tx)
-	postMigration(tx)
-	orderMigration(tx)
-	orderQRMigration(tx)
-	historyMigration(tx)
-	userRatingMigration(tx)
-	notificationMigration(tx)
+	// userMigration(tx)
+	// categoryMigration(tx)
+	// postCategoryMigration(tx)
+	// placeTypeMigration(tx)
+	// postPlaceTypeMigration(tx)
+	// postMigration(tx)
+	// orderMigration(tx)
+	// orderQRMigration(tx)
+	// historyMigration(tx)
+	// userRatingMigration(tx)
+	// notificationMigration(tx)
+	workerFeeMigration(tx)
 
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
@@ -36,6 +38,10 @@ func userMigration(tx *gorm.DB) {
 
 func postMigration(tx *gorm.DB) {
 	tx.Migrator().CreateTable(&entities.Post{})
+}
+
+func categoryMigration(tx *gorm.DB) {
+	tx.Migrator().CreateTable(&entities.Category{})
 }
 
 func postCategoryMigration(tx *gorm.DB) {
@@ -75,7 +81,8 @@ func notificationMigration(tx *gorm.DB) {
 	//     'complete',
 	//     'user_cancel',
 	//     'worker_cancel',
-	//     'user_rating'
+	//     'user_rating',
+	// 	'system_cancel'
 	// );
 	// `
 
@@ -84,4 +91,8 @@ func notificationMigration(tx *gorm.DB) {
 	// }
 
 	tx.Migrator().CreateTable(&entities.Notification{})
+}
+
+func workerFeeMigration(tx *gorm.DB) {
+	tx.Migrator().CreateTable(&entities.WorkerFeepayment{})
 }

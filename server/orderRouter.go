@@ -23,6 +23,12 @@ func (s *echoServer) initOrderRouter() {
 	router.GET("/worker/:orderID", orderController.GetWorkerOrder)
 
 	router.GET("/prepare/:orderID", orderController.GetPreparingOrder)
-	router.GET("/payment/qr/:orderID", orderController.GetQRpayment)
+	router.GET("/worker/prepare/:orderID", orderController.GetWorkerPrepare)
+	router.POST("/payment/qr/:orderID", orderController.GetQRpayment)
 	router.GET("/payment/inquiry", orderController.InquiryQRpayment)
+	router.POST("/worker/fee/:postID", orderController.GetWorkerFeePayment)
+	router.GET("/payment/fee", orderController.InquiryFeePayment)
+
+	router.GET("/active", orderController.GetActiveOrder)
+	router.GET("/worker/active", orderController.GetActiveWorkerOrder)
 }

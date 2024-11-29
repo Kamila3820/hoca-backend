@@ -15,4 +15,5 @@ func (s *echoServer) initUserRatingRouter() {
 
 	router.GET("/list/:postID", userRatingController.ListRatingByPostID)
 	router.POST("/create/:historyID", userRatingController.RatingWorker)
+	router.GET("/metric/:postID", userRatingController.GetRatingMetrics)
 }

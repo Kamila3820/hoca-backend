@@ -50,6 +50,17 @@ type CreateOrderQrResponse struct {
 	TransactionId string `json:"transactionId,omitempty"`
 }
 
+type CreateWorkerFeeQrResponse struct {
+	QrRawData     string `json:"qrRawData,omitempty"`
+	QrImage       string `json:"qrImage,omitempty"`
+	TransactionId string `json:"transactionId,omitempty"`
+	OrderCount    int    `json:"order_count,omitempty"`
+	Amount        uint64 `json:"amount,omitempty"`
+	StartFrom     string `json:"start_from,omitempty"`
+	EndFrom       string `json:"end_from,omitempty"`
+	EndedAt       string `json:"ended_at,omitempty"`
+}
+
 // Inquiry QR payment
 
 type PaymentInquiryRequest struct {

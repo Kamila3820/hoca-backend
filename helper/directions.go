@@ -32,10 +32,8 @@ type DirectionsResponse struct {
 }
 
 type Route struct {
-	Summary          string   `json:"summary"`
-	Legs             []Leg    `json:"legs"`
-	WaypointOrder    []int    `json:"waypoint_order"`
-	OverviewPolyline Polyline `json:"overview_polyline"`
+	Summary string `json:"summary"`
+	Legs    []Leg  `json:"legs"`
 }
 
 type GeocodedWaypoint struct {
@@ -50,13 +48,11 @@ type Leg struct {
 }
 
 type Distance struct {
-	Text  string `json:"text"`
-	Value int    `json:"value"`
+	Text string `json:"text"`
 }
 
 type Duration struct {
-	Text  string `json:"text"`
-	Value int    `json:"value"`
+	Text string `json:"text"`
 }
 
 type Polyline struct {
